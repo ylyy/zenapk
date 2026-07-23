@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Fruit Slap AR - 手势拍水果</title>
+  <script type="module" crossorigin src="/assets/index-CMrMl67D.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DogOsxT3.css">
+</head>
+<body>
+  <div id="app">
+    <video id="video-feed" playsinline autoplay muted></video>
+    <canvas id="game-canvas"></canvas>
+    
+    <div id="ui-overlay">
+      <div id="top-bar">
+        <div class="stat-box"><span class="label">SCORE</span><span id="score-val">0</span></div>
+        <div class="stat-box"><span class="label">COMBO</span><span id="combo-val">x1</span></div>
+        <div class="stat-box"><span class="label">TIME</span><span id="time-val">60s</span></div>
+      </div>
+      
+      <div id="controls-bar">
+        <button id="btn-camera-flip" class="icon-btn">🔄 切换摄像头</button>
+        <button id="btn-fullscreen" class="icon-btn">📺 全屏投屏</button>
+      </div>
+
+      <div id="menu-modal" class="modal active">
+        <div class="modal-content">
+          <h1>🍎 手势拍水果 🍉</h1>
+          <p>张开双臂面对摄像头，用双掌拍击下落的水果！</p>
+          <div class="mode-select">
+            <button id="btn-start-classic" class="main-btn">限时挑战 (60秒)</button>
+            <button id="btn-start-endless" class="main-btn secondary">无尽模式</button>
+          </div>
+          <div class="high-score-tag">最高分: <span id="high-score-val">0</span></div>
+        </div>
+      </div>
+
+      <div id="gameover-modal" class="modal">
+        <div class="modal-content">
+          <h2>GAME OVER</h2>
+          <div class="final-stats">
+            <div>得分: <span id="final-score">0</span></div>
+            <div>最高连击: <span id="final-combo">x1</span></div>
+          </div>
+          <button id="btn-restart" class="main-btn">再玩一次</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
