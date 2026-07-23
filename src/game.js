@@ -106,15 +106,17 @@ export class GameManager {
     const landmarks = this.handTracker.detectHands(this.cameraMgr.video, timestamp);
     const handPoints = this.handTracker.getHandPoints(
       landmarks,
+      this.cameraMgr.video,
       this.canvas.width,
       this.canvas.height,
       this.cameraMgr.isMirrored()
     );
 
-    // Draw hand skeleton
+    // Draw high-contrast glowing hand skeleton & palm aura
     this.handTracker.drawSkeleton(
       this.ctx,
       landmarks,
+      this.cameraMgr.video,
       this.canvas.width,
       this.canvas.height,
       this.cameraMgr.isMirrored()
