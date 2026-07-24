@@ -123,32 +123,35 @@ body, html {
   100% { transform: scale(1.0); opacity: 0.8; }
 }
 
+/* Position control buttons comfortably above mobile browser's bottom navigation bar (bottom: 75px) */
 #controls-bar {
   position: absolute;
-  bottom: 20px;
+  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   justify-content: center;
-  gap: 8px;
-  width: 95%;
+  gap: 10px;
+  width: 92%;
   max-width: 440px;
   pointer-events: auto;
-  z-index: 20; /* High z-index so 3 buttons sit on top of everything! */
+  z-index: 25;
 }
 
 .icon-btn {
   flex: 1;
-  background: rgba(0, 0, 0, 0.75);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  padding: 10px 6px;
-  border-radius: 20px;
+  background: rgba(15, 20, 30, 0.85);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  padding: 12px 6px;
+  border-radius: 24px;
   font-size: 13px;
+  font-weight: bold;
   cursor: pointer;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
   text-align: center;
   white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .modal {
@@ -174,13 +177,13 @@ body, html {
   background: rgba(30, 30, 40, 0.95);
   border: 2px solid #ff4081;
   border-radius: 24px;
-  padding: 36px 28px;
+  padding: 32px 24px;
   text-align: center;
   color: white;
-  max-width: 440px;
+  max-width: 420px;
   width: 90%;
   box-shadow: 0 0 30px rgba(255, 64, 129, 0.4);
-  margin-bottom: 50px; /* Leave space for bottom 3 buttons */
+  margin-bottom: 80px; /* Leave clear space for bottom 3 buttons */
 }
 
 .modal-content h1 {
