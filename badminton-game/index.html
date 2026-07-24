@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Badminton Motion AR - 双人体感羽毛球对战</title>
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <video id="video-feed" playsinline autoplay muted></video>
+    <canvas id="game-canvas"></canvas>
+    
+    <div id="ui-overlay">
+      <div id="top-hud">
+        <!-- P1 Analytics Card -->
+        <div class="player-card p1-card">
+          <div class="player-title">🔴 PLAYER 1 (左侧)</div>
+          <div class="stat-row">手移动速度: <span id="p1-speed">0.0 m/s</span></div>
+          <div class="stat-row">挥拍速报: <span id="p1-swing">0 km/h</span></div>
+          <div class="power-bar-bg"><div id="p1-power-bar" class="power-bar-fill"></div></div>
+        </div>
+
+        <!-- Center Scoreboard -->
+        <div id="scoreboard">
+          <div class="score-display">
+            <span id="p1-score" class="score-num p1-color">0</span>
+            <span class="score-divider">:</span>
+            <span id="p2-score" class="score-num p2-color">0</span>
+          </div>
+          <div id="serve-indicator">🔴 P1 发球</div>
+        </div>
+
+        <!-- P2 Analytics Card -->
+        <div class="player-card p2-card">
+          <div class="player-title">🔵 PLAYER 2 (右侧)</div>
+          <div class="stat-row">手移动速度: <span id="p2-speed">0.0 m/s</span></div>
+          <div class="stat-row">挥拍速报: <span id="p2-swing">0 km/h</span></div>
+          <div class="power-bar-bg"><div id="p2-power-bar" class="power-bar-fill"></div></div>
+        </div>
+      </div>
+
+      <div id="controls-bar">
+        <button id="btn-camera-flip" class="icon-btn">🔄 切换摄像头</button>
+        <button id="btn-fullscreen" class="icon-btn">📺 全屏投屏</button>
+      </div>
+
+      <div id="menu-modal" class="modal active">
+        <div class="modal-content">
+          <h1>🏸 双人羽毛球动作对战 🏸</h1>
+          <p>横屏面对摄像头，站在左右两侧挥手当作羽毛球拍对战！</p>
+          <div id="camera-status-msg" class="status-msg">📷 正在初始化摄像头与 AI...</div>
+          <button id="btn-start-match" class="main-btn">开始双人对战 (11分制)</button>
+        </div>
+      </div>
+
+      <div id="gameover-modal" class="modal">
+        <div class="modal-content">
+          <h2 id="winner-title">🏆 PLAYER 1 获胜！</h2>
+          <div class="match-stats">
+            <div>最高挥拍时速: <span id="max-swing-speed">0 km/h</span></div>
+            <div>最大扣杀力度: <span id="max-smash-power">0%</span></div>
+          </div>
+          <button id="btn-restart" class="main-btn">再次对战</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

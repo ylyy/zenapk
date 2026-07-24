@@ -1,0 +1,225 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #000;
+  font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+}
+
+#app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+#video-feed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+  transform: scaleX(-1);
+}
+
+#game-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#ui-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+#top-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 24px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+}
+
+.player-card {
+  background: rgba(20, 20, 30, 0.75);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 12px 18px;
+  color: white;
+  width: 240px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.p1-card { border-left: 4px solid #ff4081; }
+.p2-card { border-right: 4px solid #00e676; }
+
+.player-title {
+  font-weight: 800;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.stat-row {
+  font-size: 13px;
+  color: #cfd8dc;
+  margin-bottom: 4px;
+}
+
+.stat-row span {
+  font-weight: bold;
+  color: #ffeb3b;
+}
+
+.power-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.power-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ffea00, #ff1744);
+  transition: width 0.15s ease-out;
+}
+
+#scoreboard {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  padding: 10px 28px;
+  text-align: center;
+  color: white;
+}
+
+.score-display {
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.p1-color { color: #ff4081; }
+.p2-color { color: #00e676; }
+.score-divider { color: #888; margin: 0 8px; }
+
+#serve-indicator {
+  font-size: 12px;
+  color: #ffeb3b;
+  font-weight: bold;
+  margin-top: 2px;
+}
+
+#controls-bar {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.icon-btn {
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(10px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.modal.active { display: flex; }
+
+.modal-content {
+  background: rgba(20, 25, 35, 0.95);
+  border: 2px solid #00e676;
+  border-radius: 24px;
+  padding: 36px 30px;
+  text-align: center;
+  color: white;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 0 35px rgba(0, 230, 118, 0.3);
+}
+
+.modal-content h1 { font-size: 26px; color: #ffeb3b; margin-bottom: 12px; }
+
+.status-msg {
+  margin: 14px 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  background: rgba(0, 230, 118, 0.15);
+  border: 1px solid rgba(0, 230, 118, 0.4);
+  color: #69f0ae;
+  text-align: left;
+}
+
+.status-msg.error {
+  background: rgba(255, 23, 68, 0.2);
+  border-color: rgba(255, 23, 68, 0.6);
+  color: #ff8a80;
+}
+
+.match-stats {
+  margin: 16px 0;
+  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.main-btn {
+  background: linear-gradient(45deg, #00e676, #00b0ff);
+  border: none;
+  color: white;
+  padding: 14px 28px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 30px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 14px;
+  box-shadow: 0 4px 15px rgba(0, 230, 118, 0.4);
+}
