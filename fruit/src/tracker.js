@@ -60,26 +60,17 @@ export class HandTracker {
     return [];
   }
 
-  // Calculate pixel coordinates accounting for video object-fit: cover scaling
+  // Direct normalized coordinate mapping to canvas view (100% aligned with user's real hand)
   transformCoords(lm, videoElement, canvasWidth, canvasHeight, isMirrored = true) {
-    const videoWidth = videoElement.videoWidth || 1280;
-    const videoHeight = videoElement.videoHeight || 720;
-
-    const scale = Math.max(canvasWidth / videoWidth, canvasHeight / videoHeight);
-    const renderedWidth = videoWidth * scale;
-    const renderedHeight = videoHeight * scale;
-    const offsetX = (canvasWidth - renderedWidth) / 2;
-    const offsetY = (canvasHeight - renderedHeight) / 2;
-
     let normX = lm.x;
     if (isMirrored) {
       normX = 1.0 - normX;
     }
 
-    const pxX = normX * videoWidth * scale + offsetX;
-    const pxY = lm.y * videoHeight * scale + offsetY;
-
-    return { x: pxX, y: pxY };
+    return {
+      x: normX * canvasWidth,
+      y: lm.y * canvasHeight
+    };
   }
 
   // Get collision points for hands
@@ -91,7 +82,6 @@ export class HandTracker {
       for (const idx of hitIndices) {
         const lm = hand[idx];
         const pt = this.transformCoords(lm, videoElement, canvasWidth, canvasHeight, isMirrored);
-        // Give palm (9) and wrist (0) a larger collision radius for easy slapping
         const radius = (idx === 9 || idx === 0) ? 60 : 35;
         points.push({ x: pt.x, y: pt.y, radius });
       }
@@ -117,7 +107,7 @@ export class HandTracker {
 
     for (const hand of landmarks) {
       // 1. Draw skeleton bone lines
-      ctx.strokeStyle = 'rgba(0, 230, 118, 0.8)';
+      ctx.strokeStyle = 'rgba(0, 230, 118, 0.85)';
       ctx.lineWidth = 4;
       for (const [i, j] of connections) {
         const p1 = this.transformCoords(hand[i], videoElement, canvasWidth, canvasHeight, isMirrored);
@@ -130,7 +120,7 @@ export class HandTracker {
 
       // 2. Draw glowing palm slap circle
       const palm = this.transformCoords(hand[9], videoElement, canvasWidth, canvasHeight, isMirrored);
-      ctx.fillStyle = 'rgba(255, 64, 129, 0.35)';
+      ctx.fillStyle = 'rgba(255, 64, 129, 0.4)';
       ctx.strokeStyle = '#ff4081';
       ctx.lineWidth = 3;
       ctx.beginPath();

@@ -34,19 +34,12 @@ export class HandTracker {
     this.isReady = true;
   }
 
+  // Direct normalized coordinate mapping to canvas view (100% aligned with user's real hand)
   transformCoords(lm, videoElement, canvasWidth, canvasHeight) {
-    const vw = videoElement.videoWidth || 1280;
-    const vh = videoElement.videoHeight || 720;
-    const scale = Math.max(canvasWidth / vw, canvasHeight / vh);
-    const rw = vw * scale;
-    const rh = vh * scale;
-    const ox = (canvasWidth - rw) / 2;
-    const oy = (canvasHeight - rh) / 2;
-
     const normX = 1.0 - lm.x; // Mirrored for natural user reflection
     return {
-      x: normX * vw * scale + ox,
-      y: lm.y * vh * scale + oy
+      x: normX * canvasWidth,
+      y: lm.y * canvasHeight
     };
   }
 
