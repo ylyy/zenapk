@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>超级赛亚人 AR 变身与发波</title>
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <video id="webcam" autoplay playsinline muted></video>
+    <canvas id="canvas"></canvas>
+
+    <!-- Glassmorphism HUD -->
+    <div id="hud-overlay">
+      <header class="hud-header">
+        <a href="../index.html" class="back-btn">← 大厅</a>
+        <h1 class="game-title">⚡ 赛亚人 AR 爆气 ⚡</h1>
+        <div id="power-gauge" class="power-gauge">
+          <span class="label">战斗力</span>
+          <span id="power-value" class="value">5,000</span>
+        </div>
+      </header>
+
+      <!-- Stage & Prompt Guidance Card -->
+      <div id="prompt-card" class="prompt-card">
+        <div id="stage-badge" class="stage-badge">阶段 1: 突破极限变身</div>
+        <div id="gesture-title" class="gesture-title">步骤 1/3: 胸前交叉聚气</div>
+        <div id="gesture-desc" class="gesture-desc">将双手在胸前交叉</div>
+        <div id="progress-bar-container" class="progress-bar-container">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div id="controls">
+        <button id="btn-photo" class="hud-btn hidden">📸 拍照保存</button>
+        <button id="btn-reset" class="hud-btn">🔄 重新变身</button>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

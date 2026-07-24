@@ -6,8 +6,10 @@
   "scripts": {
     "dev:fruit": "cd fruit && npm run dev",
     "dev:badminton": "cd badminton-game && npm run dev",
+    "dev:saiyan": "cd saiyan && npm run dev",
     "build:fruit": "cd fruit && npm run build",
     "build:badminton": "cd badminton-game && npm run build",
+    "build:saiyan": "cd saiyan && npm run build",
     "build:all": "node scripts/build-all.js"
   }
 }
