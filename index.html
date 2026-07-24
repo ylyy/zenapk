@@ -2,64 +2,88 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Fruit Slap AR - 手势拍水果</title>
-  <link rel="stylesheet" href="./src/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AR 动作体感游戏大厅</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: white;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 32px;
+      color: #ffeb3b;
+      margin-bottom: 8px;
+      text-shadow: 0 0 20px rgba(255, 235, 59, 0.4);
+    }
+    p.subtitle {
+      color: #b3e5fc;
+      margin-bottom: 36px;
+      font-size: 16px;
+    }
+    .grid {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 800px;
+    }
+    .game-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: 28px;
+      width: 320px;
+      text-align: center;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .game-card:hover {
+      transform: translateY(-8px);
+      border-color: #00e676;
+    }
+    .game-card .icon { font-size: 54px; margin-bottom: 16px; }
+    .game-card h2 { font-size: 22px; color: #fff; margin-bottom: 10px; }
+    .game-card p { font-size: 14px; color: #b0bec5; line-height: 1.5; margin-bottom: 20px; }
+    .launch-btn {
+      display: inline-block;
+      background: linear-gradient(45deg, #00e676, #00b0ff);
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 12px 24px;
+      border-radius: 20px;
+      font-size: 16px;
+      box-shadow: 0 4px 15px rgba(0, 230, 118, 0.4);
+    }
+  </style>
 </head>
 <body>
-  <div id="app">
-    <video id="video-feed" playsinline autoplay muted></video>
-    <canvas id="game-canvas"></canvas>
-    
-    <div id="ui-overlay">
-      <div id="top-bar">
-        <div class="stat-box"><span class="label">SCORE</span><span id="score-val">0</span></div>
-        <div class="stat-box"><span class="label">COMBO</span><span id="combo-val">x1</span></div>
-        <div class="stat-box"><span class="label">TIME</span><span id="time-val">60s</span></div>
-      </div>
+  <h1>🎮 AR 动作体感游戏大厅</h1>
+  <p class="subtitle">请选择您要游玩的体感游戏项目：</p>
 
-      <!-- Center Countdown Overlay -->
-      <div id="countdown-overlay" class="countdown-overlay">
-        <div id="countdown-num">3</div>
-      </div>
-      
-      <div id="controls-bar">
-        <button id="btn-bgm-toggle" class="icon-btn">🎵 BGM: 开启</button>
-        <button id="btn-camera-flip" class="icon-btn">🔄 切换摄像头</button>
-        <button id="btn-fullscreen" class="icon-btn">📺 全屏投屏</button>
-      </div>
+  <div class="grid">
+    <div class="game-card">
+      <div class="icon">🍎🍉</div>
+      <h2>手势拍水果 AR</h2>
+      <p>张开双臂面对摄像头，双掌拍击下落水果！带 3D 倒计时、BGM 与星级勋章。</p>
+      <a href="https://10.136.235.174:5173" class="launch-btn" target="_blank">进入游戏 (端口 5173)</a>
+    </div>
 
-      <div id="menu-modal" class="modal active">
-        <div class="modal-content">
-          <h1>🍎 手势拍水果 🍉</h1>
-          <p>张开双臂面对摄像头，用双掌拍击下落的水果！</p>
-          
-          <div id="camera-status-msg" class="status-msg">📷 正在初始化摄像头与 AI...</div>
-
-          <div class="mode-select">
-            <button id="btn-start-classic" class="main-btn">限时挑战 (60秒)</button>
-            <button id="btn-start-endless" class="main-btn secondary">无尽模式</button>
-          </div>
-          <div class="high-score-tag">最高分: <span id="high-score-val">0</span></div>
-        </div>
-      </div>
-
-      <div id="gameover-modal" class="modal">
-        <div class="modal-content">
-          <h2>GAME OVER</h2>
-          <div id="star-rating" class="star-rating">⭐⭐⭐</div>
-          <div id="rating-title" class="rating-title">拍击达人！</div>
-
-          <div class="final-stats">
-            <div>本次得分: <span id="final-score" class="highlight-stat">0</span></div>
-            <div>最高连击: <span id="final-combo">x1</span></div>
-            <div>击中水果数: <span id="final-fruits">0</span></div>
-          </div>
-          <button id="btn-restart" class="main-btn">再玩一次</button>
-        </div>
-      </div>
+    <div class="game-card">
+      <div class="icon">🏸🔥</div>
+      <h2>双人羽毛球对战 AR</h2>
+      <p>单摄像头横屏 16:9 对战，手挥流光球拍打出暴扣！含 4D 运动数据与 MVP 战报。</p>
+      <a href="https://10.136.235.174:5174" class="launch-btn" target="_blank">进入对战 (端口 5174)</a>
     </div>
   </div>
-  <script type="module" src="./src/main.js"></script>
 </body>
 </html>
