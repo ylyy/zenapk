@@ -34,9 +34,25 @@ export class HandTracker {
     this.isReady = true;
   }
 
-  detect(videoElement) {
+  transformCoords(lm, videoElement, canvasWidth, canvasHeight) {
+    const vw = videoElement.videoWidth || 1280;
+    const vh = videoElement.videoHeight || 720;
+    const scale = Math.max(canvasWidth / vw, canvasHeight / vh);
+    const rw = vw * scale;
+    const rh = vh * scale;
+    const ox = (canvasWidth - rw) / 2;
+    const oy = (canvasHeight - rh) / 2;
+
+    const normX = 1.0 - lm.x; // Mirrored for natural user reflection
+    return {
+      x: normX * vw * scale + ox,
+      y: lm.y * vh * scale + oy
+    };
+  }
+
+  detect(videoElement, canvasWidth, canvasHeight) {
     if (!this.isReady || !videoElement || videoElement.readyState < 2) {
-      return { p1Hand: null, p2Hand: null };
+      return { p1Hand: null, p2Hand: null, p1Pos: null, p2Pos: null };
     }
 
     try {
@@ -47,38 +63,25 @@ export class HandTracker {
 
         let p1Hand = null;
         let p2Hand = null;
+        let p1Pos = null;
+        let p2Pos = null;
 
         for (const hand of landmarks) {
-          // Palm center landmark #9
-          const palmX = hand[9].x;
-          // In mirrored mode, normalized X < 0.5 is Player 1 (Left), X >= 0.5 is Player 2 (Right)
-          if (palmX > 0.5 && !p1Hand) { // Mirrored: 1 - palmX < 0.5 => palmX > 0.5
+          const pos = this.transformCoords(hand[9], videoElement, canvasWidth, canvasHeight);
+          // Evaluate screen X position: Screen Left (< 0.5 cw) -> P1, Screen Right (>= 0.5 cw) -> P2
+          if (pos.x < canvasWidth * 0.5 && !p1Hand) {
             p1Hand = hand;
-          } else if (palmX <= 0.5 && !p2Hand) {
+            p1Pos = pos;
+          } else if (pos.x >= canvasWidth * 0.5 && !p2Hand) {
             p2Hand = hand;
+            p2Pos = pos;
           }
         }
-        return { p1Hand, p2Hand };
+        return { p1Hand, p2Hand, p1Pos, p2Pos };
       }
     } catch (err) {
       console.error("Tracking error:", err);
     }
-    return { p1Hand: null, p2Hand: null };
-  }
-
-  transformCoords(lm, videoElement, canvasWidth, canvasHeight) {
-    const vw = videoElement.videoWidth || 1280;
-    const vh = videoElement.videoHeight || 720;
-    const scale = Math.max(canvasWidth / vw, canvasHeight / vh);
-    const rw = vw * scale;
-    const rh = vh * scale;
-    const ox = (canvasWidth - rw) / 2;
-    const oy = (canvasHeight - rh) / 2;
-
-    const normX = 1.0 - lm.x; // Mirrored
-    return {
-      x: normX * vw * scale + ox,
-      y: lm.y * vh * scale + oy
-    };
+    return { p1Hand: null, p2Hand: null, p1Pos: null, p2Pos: null };
   }
 }

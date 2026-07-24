@@ -52,29 +52,18 @@ export class GameManager {
   updateAndRender() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // Draw 2D Court Net & Center Line
+    // Draw 2D Badminton Court, Net, and Floor
     this.drawCourt();
 
     if (this.state !== 'PLAYING') return;
 
     const now = performance.now();
-    const { p1Hand, p2Hand } = this.tracker.detect(this.cameraMgr.video);
+    const { p1Pos, p2Pos } = this.tracker.detect(this.cameraMgr.video, this.canvas.width, this.canvas.height);
 
-    let p1Pos = null;
-    let p2Pos = null;
+    if (p1Pos) this.analyzer.updatePlayer('p1', p1Pos, now);
+    if (p2Pos) this.analyzer.updatePlayer('p2', p2Pos, now);
 
-    if (p1Hand) {
-      const lm = p1Hand[9];
-      p1Pos = this.tracker.transformCoords(lm, this.cameraMgr.video, this.canvas.width, this.canvas.height);
-      this.analyzer.updatePlayer('p1', p1Pos, now);
-    }
-    if (p2Hand) {
-      const lm = p2Hand[9];
-      p2Pos = this.tracker.transformCoords(lm, this.cameraMgr.video, this.canvas.width, this.canvas.height);
-      this.analyzer.updatePlayer('p2', p2Pos, now);
-    }
-
-    // Update Analytics UI Card
+    // Update Motion Analytics Cards
     document.getElementById('p1-speed').innerText = `${this.analyzer.stats.p1.currentSpeed} m/s`;
     document.getElementById('p1-swing').innerText = `${this.analyzer.stats.p1.lastSwingSpeed} km/h`;
     document.getElementById('p1-power-bar').style.width = `${this.analyzer.stats.p1.power}%`;
@@ -83,38 +72,55 @@ export class GameManager {
     document.getElementById('p2-swing').innerText = `${this.analyzer.stats.p2.lastSwingSpeed} km/h`;
     document.getElementById('p2-power-bar').style.width = `${this.analyzer.stats.p2.power}%`;
 
-    // Render Virtual Rackets
+    // Render Virtual Rackets on hands
     this.racketRenderer.drawRacket(this.ctx, p1Pos, '#ff4081', this.analyzer.stats.p1.currentSpeed, 'P1 RACKET');
     this.racketRenderer.drawRacket(this.ctx, p2Pos, '#00e676', this.analyzer.stats.p2.currentSpeed, 'P2 RACKET');
 
-    // Update Shuttlecock Physics
+    // Update Shuttlecock High-Speed Physics
     this.shuttle.update();
     this.shuttle.draw(this.ctx);
 
-    // Collision Check: Shuttlecock vs P1/P2 Rackets
-    if (p1Pos && Math.hypot(p1Pos.x - this.shuttle.x, p1Pos.y - this.shuttle.y) < 65 && this.shuttle.lastHitter !== 'p1') {
+    // Auto Practice Wall: If Player 2 is not present and shuttlecock flies past net to right wall, auto-return!
+    if (!p2Pos && this.shuttle.x > this.canvas.width * 0.85 && this.shuttle.vx > 0) {
+      this.shuttle.vx = -Math.abs(this.shuttle.vx);
+      this.shuttle.vy = -12;
+      this.sound.playSwish();
+    }
+    // Auto Practice Wall for P1 side if only P2 is present
+    if (!p1Pos && this.shuttle.x < this.canvas.width * 0.15 && this.shuttle.vx < 0) {
+      this.shuttle.vx = Math.abs(this.shuttle.vx);
+      this.shuttle.vy = -12;
+      this.sound.playSwish();
+    }
+
+    // Collision Check: Shuttlecock vs P1 Racket
+    if (p1Pos && Math.hypot(p1Pos.x - this.shuttle.x, p1Pos.y - this.shuttle.y) < 70 && this.shuttle.lastHitter !== 'p1') {
       const { swingKmH, powerPct } = this.analyzer.registerSwingImpact('p1');
       this.shuttle.hit('p1', powerPct);
-      this.sound.playHit(powerPct > 75);
+      this.sound.playHit(powerPct > 70);
       if (swingKmH > this.maxSwing) this.maxSwing = swingKmH;
       if (powerPct > this.maxSmash) this.maxSmash = powerPct;
     }
 
-    if (p2Pos && Math.hypot(p2Pos.x - this.shuttle.x, p2Pos.y - this.shuttle.y) < 65 && this.shuttle.lastHitter !== 'p2') {
+    // Collision Check: Shuttlecock vs P2 Racket
+    if (p2Pos && Math.hypot(p2Pos.x - this.shuttle.x, p2Pos.y - this.shuttle.y) < 70 && this.shuttle.lastHitter !== 'p2') {
       const { swingKmH, powerPct } = this.analyzer.registerSwingImpact('p2');
       this.shuttle.hit('p2', powerPct);
-      this.sound.playHit(powerPct > 75);
+      this.sound.playHit(powerPct > 70);
       if (swingKmH > this.maxSwing) this.maxSwing = swingKmH;
       if (powerPct > this.maxSmash) this.maxSmash = powerPct;
     }
 
-    // Out of bounds / Floor landing scoring
-    if (this.shuttle.isOutOfBounds()) {
-      if (this.shuttle.x < this.canvas.width * 0.5) {
+    // Landing / Fault Scoring
+    const landing = this.shuttle.checkLanding();
+    if (landing) {
+      if (landing === 'LANDED_P1') {
+        // Shuttlecock fell in P1's court -> P2 scores
         this.p2Score++;
         this.sound.playScore();
         this.shuttle.reset('p2');
       } else {
+        // Shuttlecock fell in P2's court -> P1 scores
         this.p1Score++;
         this.sound.playScore();
         this.shuttle.reset('p1');
@@ -129,20 +135,30 @@ export class GameManager {
 
   drawCourt() {
     this.ctx.save();
-    // Center Net Line
-    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    
+    // Net posts & Line in middle
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
     this.ctx.lineWidth = 4;
-    this.ctx.setLineDash([10, 10]);
+    this.ctx.setLineDash([12, 8]);
     this.ctx.beginPath();
     this.ctx.moveTo(this.canvas.width / 2, 0);
     this.ctx.lineTo(this.canvas.width / 2, this.canvas.height);
     this.ctx.stroke();
 
-    // Net post icon in middle
+    // Floor Line
+    this.ctx.setLineDash([]);
+    this.ctx.strokeStyle = '#00e676';
+    this.ctx.lineWidth = 6;
+    this.ctx.beginPath();
+    this.ctx.moveTo(0, this.canvas.height - 40);
+    this.ctx.lineTo(this.canvas.width, this.canvas.height - 40);
+    this.ctx.stroke();
+
+    // Net tag text
     this.ctx.fillStyle = '#ffeb3b';
-    this.ctx.font = '24px sans-serif';
+    this.ctx.font = 'bold 20px sans-serif';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('🏸 NET', this.canvas.width / 2, this.canvas.height - 40);
+    this.ctx.fillText('🏸 球网 (NET)', this.canvas.width / 2, this.canvas.height - 60);
     this.ctx.restore();
   }
 
