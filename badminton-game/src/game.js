@@ -83,13 +83,13 @@ export class GameManager {
     // Auto Practice Wall: If Player 2 is not present and shuttlecock flies past net to right wall, auto-return!
     if (!p2Pos && this.shuttle.x > this.canvas.width * 0.85 && this.shuttle.vx > 0) {
       this.shuttle.vx = -Math.abs(this.shuttle.vx);
-      this.shuttle.vy = -12;
+      this.shuttle.vy = -10;
       this.sound.playSwish();
     }
     // Auto Practice Wall for P1 side if only P2 is present
     if (!p1Pos && this.shuttle.x < this.canvas.width * 0.15 && this.shuttle.vx < 0) {
       this.shuttle.vx = Math.abs(this.shuttle.vx);
-      this.shuttle.vy = -12;
+      this.shuttle.vy = -10;
       this.sound.playSwish();
     }
 
