@@ -38,21 +38,21 @@ export class HandTracker {
     const vW = videoElement ? videoElement.videoWidth : 0;
     const vH = videoElement ? videoElement.videoHeight : 0;
 
-    if (!vW || !vH) {
-      const normX = 1.0 - lm.x;
-      return { x: normX * canvasWidth, y: lm.y * canvasHeight };
-    }
+    const isCanvasPortrait = canvasHeight > canvasWidth;
+    const isVideoPortrait = vH > vW;
 
-    const scale = Math.max(canvasWidth / vW, canvasHeight / vH);
-    const renderedW = vW * scale;
-    const renderedH = vH * scale;
-    const offsetX = (canvasWidth - renderedW) / 2;
-    const offsetY = (canvasHeight - renderedH) / 2;
+    if (vW > 0 && vH > 0 && isCanvasPortrait !== isVideoPortrait) {
+      const normX = 1.0 - lm.y;
+      return {
+        x: normX * canvasWidth,
+        y: lm.x * canvasHeight
+      };
+    }
 
     const normX = 1.0 - lm.x;
     return {
-      x: normX * vW * scale + offsetX,
-      y: lm.y * vH * scale + offsetY
+      x: normX * canvasWidth,
+      y: lm.y * canvasHeight
     };
   }
 

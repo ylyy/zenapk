@@ -59,29 +59,27 @@ export class HandTracker {
     return [];
   }
 
-  // Universal object-fit: cover coordinate transformation for BOTH Portrait and Landscape
+  // Rotation-aware coordinate transformation for portrait and landscape mobile viewports
   transformCoords(lm, videoElement, canvasWidth, canvasHeight, isMirrored = true) {
     const vW = videoElement ? videoElement.videoWidth : 0;
     const vH = videoElement ? videoElement.videoHeight : 0;
 
-    if (!vW || !vH) {
-      // Clean fallback if video stream metadata is not yet ready
-      const x = isMirrored ? (1.0 - lm.x) * canvasWidth : lm.x * canvasWidth;
-      const y = lm.y * canvasHeight;
-      return { x, y };
+    const isCanvasPortrait = canvasHeight > canvasWidth;
+    const isVideoPortrait = vH > vW;
+
+    if (vW > 0 && vH > 0 && isCanvasPortrait !== isVideoPortrait) {
+      // Rotated mobile camera buffer (e.g. Portrait phone held vertically with 1280x720 camera stream)
+      // Long axis (lm.x) maps to canvasHeight, short axis (lm.y) maps to canvasWidth
+      const normX = isMirrored ? (1.0 - lm.y) : lm.y;
+      const screenX = normX * canvasWidth;
+      const screenY = lm.x * canvasHeight;
+      return { x: screenX, y: screenY };
     }
 
-    // Exact CSS object-fit: cover scale factor & aspect ratio offsets
-    const scale = Math.max(canvasWidth / vW, canvasHeight / vH);
-    const renderedW = vW * scale;
-    const renderedH = vH * scale;
-    const offsetX = (canvasWidth - renderedW) / 2;
-    const offsetY = (canvasHeight - renderedH) / 2;
-
+    // Matching orientation (Landscape mode or matching video stream)
     const normX = isMirrored ? (1.0 - lm.x) : lm.x;
-    const screenX = normX * vW * scale + offsetX;
-    const screenY = lm.y * vH * scale + offsetY;
-
+    const screenX = normX * canvasWidth;
+    const screenY = lm.y * canvasHeight;
     return { x: screenX, y: screenY };
   }
 
