@@ -33,10 +33,10 @@ jobs:
           cache: 'npm'
 
       - name: Install Fruit Game Dependencies
-        run: cd fruit && npm install
+        run: cd fruit && npm install --legacy-peer-deps
 
       - name: Install Badminton Game Dependencies
-        run: cd badminton-game && npm install
+        run: cd badminton-game && npm install --legacy-peer-deps
 
       - name: Run Unified Build
         run: npm run build:all
