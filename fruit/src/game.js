@@ -176,7 +176,7 @@ export class GameManager {
       this.cameraMgr.isMirrored()
     );
 
-    this.handTracker.drawSkeleton(
+    this.handTracker.drawCyberBlade(
       this.ctx,
       landmarks,
       this.cameraMgr.video,

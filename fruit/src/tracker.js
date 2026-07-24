@@ -5,6 +5,7 @@ export class HandTracker {
     this.landmarker = null;
     this.isReady = false;
     this.lastVideoTime = -1;
+    this.trailHistories = [];
   }
 
   async init() {
@@ -94,59 +95,138 @@ export class HandTracker {
         const radius = (idx === 9 || idx === 0) ? 60 : 35;
         points.push({ x: pt.x, y: pt.y, radius });
       }
+
+      // Add extended blade tip collision points
+      const pWrist = this.transformCoords(hand[0], videoElement, canvasWidth, canvasHeight, isMirrored);
+      const pIndexTip = this.transformCoords(hand[8], videoElement, canvasWidth, canvasHeight, isMirrored);
+      const dx = pIndexTip.x - pWrist.x;
+      const dy = pIndexTip.y - pWrist.y;
+      const angle = Math.atan2(dy, dx);
+      const bladeLength = 110;
+      const bladeTipX = pIndexTip.x + Math.cos(angle) * bladeLength;
+      const bladeTipY = pIndexTip.y + Math.sin(angle) * bladeLength;
+      points.push({ x: bladeTipX, y: bladeTipY, radius: 45 });
+      points.push({ x: pIndexTip.x + Math.cos(angle) * 55, y: pIndexTip.y + Math.sin(angle) * 55, radius: 40 });
     }
     return points;
   }
 
-  drawSkeleton(ctx, landmarks, videoElement, canvasWidth, canvasHeight, isMirrored = true) {
-    if (!landmarks || landmarks.length === 0) return;
+  drawCyberBlade(ctx, landmarks, videoElement, canvasWidth, canvasHeight, isMirrored = true) {
+    if (!landmarks || landmarks.length === 0) {
+      this.trailHistories = [];
+      return;
+    }
 
     ctx.save();
 
-    const connections = [
-      [0, 1], [1, 2], [2, 3], [3, 4],       // Thumb
-      [0, 5], [5, 6], [6, 7], [7, 8],       // Index
-      [5, 9], [9, 10], [10, 11], [11, 12],  // Middle
-      [9, 13], [13, 14], [14, 15], [15, 16], // Ring
-      [13, 17], [17, 18], [18, 19], [19, 20], // Pinky
-      [0, 17]                               // Palm base
-    ];
+    landmarks.forEach((hand, handIdx) => {
+      if (!this.trailHistories[handIdx]) {
+        this.trailHistories[handIdx] = [];
+      }
+      const history = this.trailHistories[handIdx];
 
-    for (const hand of landmarks) {
-      ctx.strokeStyle = 'rgba(0, 230, 118, 0.85)';
-      ctx.lineWidth = 4;
-      for (const [i, j] of connections) {
-        const p1 = this.transformCoords(hand[i], videoElement, canvasWidth, canvasHeight, isMirrored);
-        const p2 = this.transformCoords(hand[j], videoElement, canvasWidth, canvasHeight, isMirrored);
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
+      const pWrist = this.transformCoords(hand[0], videoElement, canvasWidth, canvasHeight, isMirrored);
+      const pIndexTip = this.transformCoords(hand[8], videoElement, canvasWidth, canvasHeight, isMirrored);
+      const pPalm = this.transformCoords(hand[9], videoElement, canvasWidth, canvasHeight, isMirrored);
+
+      const dx = pIndexTip.x - pWrist.x;
+      const dy = pIndexTip.y - pWrist.y;
+      const angle = Math.atan2(dy, dx);
+
+      const bladeLength = 110;
+      const bladeTipX = pIndexTip.x + Math.cos(angle) * bladeLength;
+      const bladeTipY = pIndexTip.y + Math.sin(angle) * bladeLength;
+
+      // Update Trail History
+      history.push({ x: bladeTipX, y: bladeTipY, indexX: pIndexTip.x, indexY: pIndexTip.y });
+      if (history.length > 12) history.shift();
+
+      // 1. Draw Motion Ribbon Trail
+      if (history.length > 1) {
+        ctx.save();
+        for (let i = 1; i < history.length; i++) {
+          const ratio = i / history.length;
+          const prev = history[i - 1];
+          const curr = history[i];
+
+          ctx.beginPath();
+          ctx.moveTo(prev.x, prev.y);
+          ctx.lineTo(curr.x, curr.y);
+          ctx.strokeStyle = `rgba(0, 243, 255, ${ratio * 0.75})`;
+          ctx.lineWidth = 14 * ratio;
+          ctx.shadowColor = '#00f3ff';
+          ctx.shadowBlur = 15;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(prev.indexX, prev.indexY);
+          ctx.lineTo(curr.indexX, curr.indexY);
+          ctx.strokeStyle = `rgba(213, 0, 249, ${ratio * 0.5})`;
+          ctx.lineWidth = 8 * ratio;
+          ctx.stroke();
+        }
+        ctx.restore();
       }
 
-      const palm = this.transformCoords(hand[9], videoElement, canvasWidth, canvasHeight, isMirrored);
-      ctx.fillStyle = 'rgba(255, 64, 129, 0.4)';
-      ctx.strokeStyle = '#ff4081';
-      ctx.lineWidth = 3;
+      // 2. Draw Palm Energy Core
+      ctx.save();
       ctx.beginPath();
-      ctx.arc(palm.x, palm.y, 50, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.arc(pPalm.x, pPalm.y, 35, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0, 243, 255, 0.8)';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#00f3ff';
+      ctx.shadowBlur = 12;
       ctx.stroke();
 
-      ctx.fillStyle = '#ffeb3b';
       ctx.beginPath();
-      ctx.arc(palm.x, palm.y, 10, 0, Math.PI * 2);
+      ctx.arc(pPalm.x, pPalm.y, 8, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.restore();
+
+      // 3. Draw Cyber Laser Blade (From Index Tip to Blade Tip)
+      ctx.save();
+      ctx.shadowColor = '#00f3ff';
+      ctx.shadowBlur = 20;
+
+      // Outer Neon Glow Line
+      ctx.beginPath();
+      ctx.moveTo(pIndexTip.x, pIndexTip.y);
+      ctx.lineTo(bladeTipX, bladeTipY);
+      ctx.strokeStyle = '#00f3ff';
+      ctx.lineWidth = 12;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // Inner White Plasma Core
+      ctx.beginPath();
+      ctx.moveTo(pIndexTip.x, pIndexTip.y);
+      ctx.lineTo(bladeTipX, bladeTipY);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 5;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // Blade Tip Flare
+      ctx.beginPath();
+      ctx.arc(bladeTipX, bladeTipY, 7, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = '#d500f9';
+      ctx.shadowBlur = 25;
       ctx.fill();
 
-      const fingerTips = [4, 8, 12, 16, 20];
-      ctx.fillStyle = '#00e676';
-      for (const tipIdx of fingerTips) {
+      // Fingertip Energy Nodes
+      const tips = [4, 8, 12, 16, 20];
+      for (const tipIdx of tips) {
         const pt = this.transformCoords(hand[tipIdx], videoElement, canvasWidth, canvasHeight, isMirrored);
         ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 12, 0, Math.PI * 2);
+        ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#00f3ff';
         ctx.fill();
       }
-    }
+
+      ctx.restore();
+    });
 
     ctx.restore();
   }
