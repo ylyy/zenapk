@@ -34,12 +34,25 @@ export class HandTracker {
     this.isReady = true;
   }
 
-  // Restore 100% working direct coordinate mapping from yesterday
-  transformCoords(lm, canvasWidth, canvasHeight) {
-    const normX = 1.0 - lm.x; // Mirrored for natural user reflection
+  transformCoords(lm, videoElement, canvasWidth, canvasHeight) {
+    const vW = videoElement ? videoElement.videoWidth : 0;
+    const vH = videoElement ? videoElement.videoHeight : 0;
+
+    if (!vW || !vH) {
+      const normX = 1.0 - lm.x;
+      return { x: normX * canvasWidth, y: lm.y * canvasHeight };
+    }
+
+    const scale = Math.max(canvasWidth / vW, canvasHeight / vH);
+    const renderedW = vW * scale;
+    const renderedH = vH * scale;
+    const offsetX = (canvasWidth - renderedW) / 2;
+    const offsetY = (canvasHeight - renderedH) / 2;
+
+    const normX = 1.0 - lm.x;
     return {
-      x: normX * canvasWidth,
-      y: lm.y * canvasHeight
+      x: normX * vW * scale + offsetX,
+      y: lm.y * vH * scale + offsetY
     };
   }
 
@@ -60,7 +73,7 @@ export class HandTracker {
         let p2Pos = null;
 
         for (const hand of landmarks) {
-          const pos = this.transformCoords(hand[9], canvasWidth, canvasHeight);
+          const pos = this.transformCoords(hand[9], videoElement, canvasWidth, canvasHeight);
           if (pos.x < canvasWidth * 0.5 && !p1Hand) {
             p1Hand = hand;
             p1Pos = pos;

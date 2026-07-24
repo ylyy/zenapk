@@ -59,19 +59,32 @@ export class HandTracker {
     return [];
   }
 
-  // Restore 100% working direct coordinate mapping from yesterday
-  transformCoords(lm, canvasWidth, canvasHeight, isMirrored = true) {
-    let normX = lm.x;
-    if (isMirrored) {
-      normX = 1.0 - normX;
+  // Universal object-fit: cover coordinate transformation for BOTH Portrait and Landscape
+  transformCoords(lm, videoElement, canvasWidth, canvasHeight, isMirrored = true) {
+    const vW = videoElement ? videoElement.videoWidth : 0;
+    const vH = videoElement ? videoElement.videoHeight : 0;
+
+    if (!vW || !vH) {
+      // Clean fallback if video stream metadata is not yet ready
+      const x = isMirrored ? (1.0 - lm.x) * canvasWidth : lm.x * canvasWidth;
+      const y = lm.y * canvasHeight;
+      return { x, y };
     }
-    return {
-      x: normX * canvasWidth,
-      y: lm.y * canvasHeight
-    };
+
+    // Exact CSS object-fit: cover scale factor & aspect ratio offsets
+    const scale = Math.max(canvasWidth / vW, canvasHeight / vH);
+    const renderedW = vW * scale;
+    const renderedH = vH * scale;
+    const offsetX = (canvasWidth - renderedW) / 2;
+    const offsetY = (canvasHeight - renderedH) / 2;
+
+    const normX = isMirrored ? (1.0 - lm.x) : lm.x;
+    const screenX = normX * vW * scale + offsetX;
+    const screenY = lm.y * vH * scale + offsetY;
+
+    return { x: screenX, y: screenY };
   }
 
-  // Get collision points for hands
   getHandPoints(landmarks, videoElement, canvasWidth, canvasHeight, isMirrored = true) {
     const points = [];
     const hitIndices = [0, 4, 8, 9, 12, 16, 20];
@@ -79,7 +92,7 @@ export class HandTracker {
     for (const hand of landmarks) {
       for (const idx of hitIndices) {
         const lm = hand[idx];
-        const pt = this.transformCoords(lm, canvasWidth, canvasHeight, isMirrored);
+        const pt = this.transformCoords(lm, videoElement, canvasWidth, canvasHeight, isMirrored);
         const radius = (idx === 9 || idx === 0) ? 60 : 35;
         points.push({ x: pt.x, y: pt.y, radius });
       }
@@ -87,7 +100,6 @@ export class HandTracker {
     return points;
   }
 
-  // Render high-visibility glowing hand skeleton and palm slap aura
   drawSkeleton(ctx, landmarks, videoElement, canvasWidth, canvasHeight, isMirrored = true) {
     if (!landmarks || landmarks.length === 0) return;
 
@@ -106,15 +118,15 @@ export class HandTracker {
       ctx.strokeStyle = 'rgba(0, 230, 118, 0.85)';
       ctx.lineWidth = 4;
       for (const [i, j] of connections) {
-        const p1 = this.transformCoords(hand[i], canvasWidth, canvasHeight, isMirrored);
-        const p2 = this.transformCoords(hand[j], canvasWidth, canvasHeight, isMirrored);
+        const p1 = this.transformCoords(hand[i], videoElement, canvasWidth, canvasHeight, isMirrored);
+        const p2 = this.transformCoords(hand[j], videoElement, canvasWidth, canvasHeight, isMirrored);
         ctx.beginPath();
         ctx.moveTo(p1.x, p1.y);
         ctx.lineTo(p2.x, p2.y);
         ctx.stroke();
       }
 
-      const palm = this.transformCoords(hand[9], canvasWidth, canvasHeight, isMirrored);
+      const palm = this.transformCoords(hand[9], videoElement, canvasWidth, canvasHeight, isMirrored);
       ctx.fillStyle = 'rgba(255, 64, 129, 0.4)';
       ctx.strokeStyle = '#ff4081';
       ctx.lineWidth = 3;
@@ -131,7 +143,7 @@ export class HandTracker {
       const fingerTips = [4, 8, 12, 16, 20];
       ctx.fillStyle = '#00e676';
       for (const tipIdx of fingerTips) {
-        const pt = this.transformCoords(hand[tipIdx], canvasWidth, canvasHeight, isMirrored);
+        const pt = this.transformCoords(hand[tipIdx], videoElement, canvasWidth, canvasHeight, isMirrored);
         ctx.beginPath();
         ctx.arc(pt.x, pt.y, 12, 0, Math.PI * 2);
         ctx.fill();
