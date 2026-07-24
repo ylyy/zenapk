@@ -166,10 +166,11 @@ export class GameManager {
       this.spawnTimer = 0;
     }
 
-    // 2. Track Hands
+    // 2. Track Hands with correct camera video argument
     const landmarks = this.handTracker.detectHands(this.cameraMgr.video, timestamp);
     const handPoints = this.handTracker.getHandPoints(
       landmarks,
+      this.cameraMgr.video,
       this.canvas.width,
       this.canvas.height,
       this.cameraMgr.isMirrored()
@@ -178,6 +179,7 @@ export class GameManager {
     this.handTracker.drawSkeleton(
       this.ctx,
       landmarks,
+      this.cameraMgr.video,
       this.canvas.width,
       this.canvas.height,
       this.cameraMgr.isMirrored()
