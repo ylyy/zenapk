@@ -2,10 +2,12 @@
   "name": "ar-motion-games-hub",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev:fruit": "cd fruit && npm run dev",
     "dev:badminton": "cd badminton-game && npm run dev",
     "build:fruit": "cd fruit && npm run build",
-    "build:badminton": "cd badminton-game && npm run build"
+    "build:badminton": "cd badminton-game && npm run build",
+    "build:all": "node scripts/build-all.js"
   }
 }
