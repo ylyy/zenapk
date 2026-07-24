@@ -13,7 +13,6 @@ export class HandTracker {
         'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
       );
 
-      // Try GPU delegate first, fallback to CPU if GPU delegate fails
       try {
         this.landmarker = await HandLandmarker.createFromOptions(vision, {
           baseOptions: {
@@ -60,23 +59,40 @@ export class HandTracker {
     return [];
   }
 
-  // Direct normalized coordinate mapping to canvas view (100% aligned with user's real hand)
+  // Orientation-aware aspect ratio scaling matching object-fit: cover
   transformCoords(lm, videoElement, canvasWidth, canvasHeight, isMirrored = true) {
+    let vw = videoElement.videoWidth || 720;
+    let vh = videoElement.videoHeight || 1280;
+
+    const isCanvasPortrait = canvasHeight > canvasWidth;
+    const isVideoPortrait = vh > vw;
+
+    if (isCanvasPortrait !== isVideoPortrait && vw > 0 && vh > 0) {
+      const temp = vw;
+      vw = vh;
+      vh = temp;
+    }
+
+    const scale = Math.max(canvasWidth / vw, canvasHeight / vh);
+    const rw = vw * scale;
+    const rh = vh * scale;
+    const ox = (canvasWidth - rw) / 2;
+    const oy = (canvasHeight - rh) / 2;
+
     let normX = lm.x;
     if (isMirrored) {
       normX = 1.0 - normX;
     }
 
     return {
-      x: normX * canvasWidth,
-      y: lm.y * canvasHeight
+      x: normX * vw * scale + ox,
+      y: lm.y * vh * scale + oy
     };
   }
 
-  // Get collision points for hands
   getHandPoints(landmarks, videoElement, canvasWidth, canvasHeight, isMirrored = true) {
     const points = [];
-    const hitIndices = [0, 4, 8, 9, 12, 16, 20]; // Wrist, Thumb, Index, Palm, Middle, Ring, Pinky
+    const hitIndices = [0, 4, 8, 9, 12, 16, 20];
 
     for (const hand of landmarks) {
       for (const idx of hitIndices) {
@@ -89,13 +105,11 @@ export class HandTracker {
     return points;
   }
 
-  // Render high-visibility glowing hand skeleton and palm slap aura
   drawSkeleton(ctx, landmarks, videoElement, canvasWidth, canvasHeight, isMirrored = true) {
     if (!landmarks || landmarks.length === 0) return;
 
     ctx.save();
 
-    // Hand connections
     const connections = [
       [0, 1], [1, 2], [2, 3], [3, 4],       // Thumb
       [0, 5], [5, 6], [6, 7], [7, 8],       // Index
@@ -106,7 +120,6 @@ export class HandTracker {
     ];
 
     for (const hand of landmarks) {
-      // 1. Draw skeleton bone lines
       ctx.strokeStyle = 'rgba(0, 230, 118, 0.85)';
       ctx.lineWidth = 4;
       for (const [i, j] of connections) {
@@ -118,7 +131,6 @@ export class HandTracker {
         ctx.stroke();
       }
 
-      // 2. Draw glowing palm slap circle
       const palm = this.transformCoords(hand[9], videoElement, canvasWidth, canvasHeight, isMirrored);
       ctx.fillStyle = 'rgba(255, 64, 129, 0.4)';
       ctx.strokeStyle = '#ff4081';
@@ -128,13 +140,11 @@ export class HandTracker {
       ctx.fill();
       ctx.stroke();
 
-      // Palm center core dot
       ctx.fillStyle = '#ffeb3b';
       ctx.beginPath();
       ctx.arc(palm.x, palm.y, 10, 0, Math.PI * 2);
       ctx.fill();
 
-      // 3. Draw finger tip hit circles
       const fingerTips = [4, 8, 12, 16, 20];
       ctx.fillStyle = '#00e676';
       for (const tipIdx of fingerTips) {

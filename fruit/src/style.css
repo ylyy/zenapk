@@ -125,22 +125,30 @@ body, html {
 
 #controls-bar {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  gap: 10px;
+  justify-content: center;
+  gap: 8px;
+  width: 95%;
+  max-width: 440px;
   pointer-events: auto;
+  z-index: 6;
 }
 
 .icon-btn {
-  background: rgba(0, 0, 0, 0.6);
+  flex: 1;
+  background: rgba(0, 0, 0, 0.7);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.4);
-  padding: 10px 16px;
+  padding: 10px 8px;
   border-radius: 20px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  text-align: center;
+  white-space: nowrap;
 }
 
 .modal {

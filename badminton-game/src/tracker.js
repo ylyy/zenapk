@@ -34,12 +34,29 @@ export class HandTracker {
     this.isReady = true;
   }
 
-  // Direct normalized coordinate mapping to canvas view (100% aligned with user's real hand)
   transformCoords(lm, videoElement, canvasWidth, canvasHeight) {
-    const normX = 1.0 - lm.x; // Mirrored for natural user reflection
+    let vw = videoElement.videoWidth || 1280;
+    let vh = videoElement.videoHeight || 720;
+
+    const isCanvasPortrait = canvasHeight > canvasWidth;
+    const isVideoPortrait = vh > vw;
+
+    if (isCanvasPortrait !== isVideoPortrait && vw > 0 && vh > 0) {
+      const temp = vw;
+      vw = vh;
+      vh = temp;
+    }
+
+    const scale = Math.max(canvasWidth / vw, canvasHeight / vh);
+    const rw = vw * scale;
+    const rh = vh * scale;
+    const ox = (canvasWidth - rw) / 2;
+    const oy = (canvasHeight - rh) / 2;
+
+    const normX = 1.0 - lm.x;
     return {
-      x: normX * canvasWidth,
-      y: lm.y * canvasHeight
+      x: normX * vw * scale + ox,
+      y: lm.y * vh * scale + oy
     };
   }
 
@@ -61,7 +78,6 @@ export class HandTracker {
 
         for (const hand of landmarks) {
           const pos = this.transformCoords(hand[9], videoElement, canvasWidth, canvasHeight);
-          // Evaluate screen X position: Screen Left (< 0.5 cw) -> P1, Screen Right (>= 0.5 cw) -> P2
           if (pos.x < canvasWidth * 0.5 && !p1Hand) {
             p1Hand = hand;
             p1Pos = pos;
