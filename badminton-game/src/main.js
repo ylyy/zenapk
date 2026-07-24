@@ -14,11 +14,16 @@ const handTracker = new HandTracker();
 const gameManager = new GameManager(canvasEl, cameraMgr, handTracker, soundEngine);
 
 document.getElementById('btn-start-match').addEventListener('click', () => {
-  gameManager.startMatch();
+  gameManager.startCountdown();
 });
 
 document.getElementById('btn-restart').addEventListener('click', () => {
-  gameManager.startMatch();
+  gameManager.startCountdown();
+});
+
+document.getElementById('btn-bgm-toggle').addEventListener('click', () => {
+  const isPlaying = soundEngine.toggleBGM();
+  document.getElementById('btn-bgm-toggle').innerText = isPlaying ? '🎵 BGM: 开启' : '🔇 BGM: 静音';
 });
 
 document.getElementById('btn-camera-flip').addEventListener('click', () => {

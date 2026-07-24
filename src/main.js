@@ -14,17 +14,22 @@ const handTracker = new HandTracker();
 
 const gameManager = new GameManager(canvasEl, cameraMgr, handTracker, soundEngine);
 
-// 1. Bind UI buttons immediately so user clicks NEVER freeze
+// Bind UI event listeners
 document.getElementById('btn-start-classic').addEventListener('click', () => {
-  gameManager.startGame('CLASSIC');
+  gameManager.startCountdown('CLASSIC');
 });
 
 document.getElementById('btn-start-endless').addEventListener('click', () => {
-  gameManager.startGame('ENDLESS');
+  gameManager.startCountdown('ENDLESS');
 });
 
 document.getElementById('btn-restart').addEventListener('click', () => {
-  gameManager.startGame(gameManager.mode);
+  gameManager.startCountdown(gameManager.mode);
+});
+
+document.getElementById('btn-bgm-toggle').addEventListener('click', () => {
+  const isPlaying = soundEngine.toggleBGM();
+  document.getElementById('btn-bgm-toggle').innerText = isPlaying ? '🎵 BGM: 开启' : '🔇 BGM: 静音';
 });
 
 document.getElementById('btn-camera-flip').addEventListener('click', () => {
@@ -41,7 +46,6 @@ document.getElementById('btn-fullscreen').addEventListener('click', () => {
   }
 });
 
-// 2. Continuous 60 FPS Render Loop
 function renderLoop(timestamp) {
   if (gameManager) {
     gameManager.updateAndRender(timestamp);
@@ -50,7 +54,6 @@ function renderLoop(timestamp) {
 }
 requestAnimationFrame(renderLoop);
 
-// 3. Initialize Camera & AI Trackers asynchronously
 async function initSensors() {
   try {
     statusMsgEl.className = 'status-msg';

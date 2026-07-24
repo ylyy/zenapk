@@ -17,8 +17,14 @@
         <div class="stat-box"><span class="label">COMBO</span><span id="combo-val">x1</span></div>
         <div class="stat-box"><span class="label">TIME</span><span id="time-val">60s</span></div>
       </div>
+
+      <!-- Center Countdown Overlay -->
+      <div id="countdown-overlay" class="countdown-overlay">
+        <div id="countdown-num">3</div>
+      </div>
       
       <div id="controls-bar">
+        <button id="btn-bgm-toggle" class="icon-btn">🎵 BGM: 开启</button>
         <button id="btn-camera-flip" class="icon-btn">🔄 切换摄像头</button>
         <button id="btn-fullscreen" class="icon-btn">📺 全屏投屏</button>
       </div>
@@ -41,9 +47,13 @@
       <div id="gameover-modal" class="modal">
         <div class="modal-content">
           <h2>GAME OVER</h2>
+          <div id="star-rating" class="star-rating">⭐⭐⭐</div>
+          <div id="rating-title" class="rating-title">拍击达人！</div>
+
           <div class="final-stats">
-            <div>得分: <span id="final-score">0</span></div>
+            <div>本次得分: <span id="final-score" class="highlight-stat">0</span></div>
             <div>最高连击: <span id="final-combo">x1</span></div>
+            <div>击中水果数: <span id="final-fruits">0</span></div>
           </div>
           <button id="btn-restart" class="main-btn">再玩一次</button>
         </div>

@@ -1,5 +1,5 @@
 import { Fruit } from './fruit.js';
-import { ScoreText } from './particle.js';
+import { ScoreText, ShockwaveRing } from './particle.js';
 
 export class GameManager {
   constructor(canvas, cameraMgr, handTracker, soundEngine) {
@@ -9,11 +9,13 @@ export class GameManager {
     this.handTracker = handTracker;
     this.sound = soundEngine;
 
-    this.state = 'MENU'; // MENU, PLAYING, GAMEOVER
-    this.mode = 'CLASSIC'; // CLASSIC (60s), ENDLESS
+    this.state = 'MENU'; // MENU, COUNTDOWN, PLAYING, GAMEOVER
+    this.mode = 'CLASSIC';
 
     this.score = 0;
     this.combo = 1;
+    this.maxCombo = 1;
+    this.slicedCount = 0;
     this.lastHitTime = 0;
     this.timeLeft = 60;
     this.lives = 3;
@@ -21,6 +23,10 @@ export class GameManager {
     this.fruits = [];
     this.particles = [];
     this.scores = [];
+    this.rings = [];
+
+    this.shakeTime = 0;
+    this.shakeMagnitude = 0;
 
     this.spawnTimer = 0;
     this.gameTimerInterval = null;
@@ -37,26 +43,56 @@ export class GameManager {
     this.canvas.height = window.innerHeight;
   }
 
-  startGame(mode = 'CLASSIC') {
+  startCountdown(mode = 'CLASSIC') {
     this.mode = mode;
-    this.state = 'PLAYING';
+    this.state = 'COUNTDOWN';
     this.score = 0;
     this.combo = 1;
+    this.maxCombo = 1;
+    this.slicedCount = 0;
     this.timeLeft = 60;
     this.lives = 3;
     this.fruits = [];
     this.particles = [];
     this.scores = [];
-    
-    this.updateHUD();
+    this.rings = [];
 
     document.getElementById('menu-modal').classList.remove('active');
     document.getElementById('gameover-modal').classList.remove('active');
+    
+    const cdOverlay = document.getElementById('countdown-overlay');
+    const cdNum = document.getElementById('countdown-num');
+    cdOverlay.classList.add('active');
 
     this.sound.init();
 
+    let count = 3;
+    cdNum.innerText = count;
+    this.sound.playCountdownBeep(false);
+
+    const cdInterval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        cdNum.innerText = count;
+        this.sound.playCountdownBeep(false);
+      } else if (count === 0) {
+        cdNum.innerText = 'GO!!';
+        this.sound.playCountdownBeep(true);
+      } else {
+        clearInterval(cdInterval);
+        cdOverlay.classList.remove('active');
+        this.startGameLoop();
+      }
+    }, 900);
+  }
+
+  startGameLoop() {
+    this.state = 'PLAYING';
+    this.sound.startBGM();
+    this.updateHUD();
+
     if (this.gameTimerInterval) clearInterval(this.gameTimerInterval);
-    
+
     if (this.mode === 'CLASSIC') {
       this.gameTimerInterval = setInterval(() => {
         this.timeLeft--;
@@ -80,9 +116,24 @@ export class GameManager {
       document.getElementById('high-score-val').innerText = this.highScore;
     }
 
+    // Rating evaluation
+    let stars = '⭐';
+    let title = '初出茅庐拍击手';
+    if (this.score >= 100) { stars = '⭐⭐'; title = '拍击高手！'; }
+    if (this.score >= 250) { stars = '⭐⭐⭐'; title = '无敌拍击王！🔥'; }
+
+    document.getElementById('star-rating').innerText = stars;
+    document.getElementById('rating-title').innerText = title;
     document.getElementById('final-score').innerText = this.score;
-    document.getElementById('final-combo').innerText = `x${this.combo}`;
+    document.getElementById('final-combo').innerText = `x${this.maxCombo}`;
+    document.getElementById('final-fruits').innerText = `${this.slicedCount} 个`;
+
     document.getElementById('gameover-modal').classList.add('active');
+  }
+
+  triggerShake(magnitude = 12) {
+    this.shakeTime = 12;
+    this.shakeMagnitude = magnitude;
   }
 
   updateHUD() {
@@ -91,13 +142,26 @@ export class GameManager {
   }
 
   updateAndRender(timestamp) {
+    this.ctx.save();
+
+    // Apply Screen Shake if active
+    if (this.shakeTime > 0) {
+      this.shakeTime--;
+      const dx = (Math.random() - 0.5) * this.shakeMagnitude;
+      const dy = (Math.random() - 0.5) * this.shakeMagnitude;
+      this.ctx.translate(dx, dy);
+    }
+
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    if (this.state !== 'PLAYING') return;
+    if (this.state !== 'PLAYING') {
+      this.ctx.restore();
+      return;
+    }
 
     // 1. Spawn Fruits
     this.spawnTimer++;
-    if (this.spawnTimer > 45) { // Spawn every ~0.75s
+    if (this.spawnTimer > 40) {
       this.fruits.push(new Fruit(this.canvas.width, this.canvas.height));
       this.spawnTimer = 0;
     }
@@ -106,36 +170,36 @@ export class GameManager {
     const landmarks = this.handTracker.detectHands(this.cameraMgr.video, timestamp);
     const handPoints = this.handTracker.getHandPoints(
       landmarks,
-      this.cameraMgr.video,
       this.canvas.width,
       this.canvas.height,
       this.cameraMgr.isMirrored()
     );
 
-    // Draw high-contrast glowing hand skeleton & palm aura
     this.handTracker.drawSkeleton(
       this.ctx,
       landmarks,
-      this.cameraMgr.video,
       this.canvas.width,
       this.canvas.height,
       this.cameraMgr.isMirrored()
     );
 
-    // 3. Process Collisions & Fruits
+    // 3. Process Collisions
     for (let i = this.fruits.length - 1; i >= 0; i--) {
       const fruit = this.fruits[i];
       fruit.update();
       fruit.draw(this.ctx);
 
       if (!fruit.isSliced) {
-        // Check collision against hand points
         for (const hp of handPoints) {
           const dist = Math.hypot(hp.x - fruit.x, hp.y - fruit.y);
           if (dist < fruit.radius + hp.radius) {
-            // Hit!
+            // HIT!
             const newParticles = fruit.slice();
             this.particles.push(...newParticles);
+
+            // Add Shockwave Ring
+            this.rings.push(new ShockwaveRing(fruit.x, fruit.y, fruit.config.color));
+            this.slicedCount++;
 
             const now = performance.now();
             if (now - this.lastHitTime < 1200) {
@@ -143,13 +207,15 @@ export class GameManager {
             } else {
               this.combo = 1;
             }
+            if (this.combo > this.maxCombo) this.maxCombo = this.combo;
             this.lastHitTime = now;
 
             if (fruit.config.isBomb) {
               this.sound.playBomb();
+              this.triggerShake(20);
               this.score = Math.max(0, this.score + fruit.config.pts);
               this.combo = 1;
-              this.scores.push(new ScoreText(fruit.x, fruit.y, `${fruit.config.pts}`, '#ff1744'));
+              this.scores.push(new ScoreText(fruit.x, fruit.y, `BOMB BOOM! ${fruit.config.pts}`, '#ff1744'));
               if (this.mode === 'ENDLESS') {
                 this.lives--;
                 if (this.lives <= 0) this.endGame();
@@ -157,12 +223,13 @@ export class GameManager {
             } else {
               this.sound.playSlap();
               this.sound.playSplat();
+              this.triggerShake(8);
               if (this.combo > 1) this.sound.playCombo(this.combo);
 
               const pointsEarned = fruit.config.pts * this.combo;
               this.score += pointsEarned;
               this.scores.push(
-                new ScoreText(fruit.x, fruit.y, `+${pointsEarned} (x${this.combo})`)
+                new ScoreText(fruit.x, fruit.y, `+${pointsEarned} (${this.combo > 1 ? 'x' + this.combo : 'SLAP!'})`)
               );
             }
 
@@ -177,7 +244,14 @@ export class GameManager {
       }
     }
 
-    // 4. Update Particles & Score Texts
+    // 4. Update Rings & Particles
+    for (let i = this.rings.length - 1; i >= 0; i--) {
+      const ring = this.rings[i];
+      ring.update();
+      ring.draw(this.ctx);
+      if (ring.alpha <= 0) this.rings.splice(i, 1);
+    }
+
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.update();
@@ -191,5 +265,7 @@ export class GameManager {
       st.draw(this.ctx);
       if (st.alpha <= 0) this.scores.splice(i, 1);
     }
+
+    this.ctx.restore();
   }
 }

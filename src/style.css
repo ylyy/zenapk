@@ -31,7 +31,7 @@ body, html {
   height: 100%;
   object-fit: cover;
   z-index: 1;
-  transform: scaleX(-1); /* Default front camera mirror */
+  transform: scaleX(-1);
 }
 
 #video-feed.no-mirror {
@@ -91,6 +91,36 @@ body, html {
   font-size: 24px;
   font-weight: 800;
   text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.countdown-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: 8;
+}
+
+.countdown-overlay.active {
+  display: flex;
+}
+
+#countdown-num {
+  font-size: 110px;
+  font-weight: 900;
+  color: #ffeb3b;
+  text-shadow: 0 0 30px #ff4081, 0 0 60px #ff9100;
+  animation: pulseScale 0.8s ease-in-out infinite;
+}
+
+@keyframes pulseScale {
+  0% { transform: scale(0.6); opacity: 0.2; }
+  50% { transform: scale(1.3); opacity: 1.0; }
+  100% { transform: scale(1.0); opacity: 0.8; }
 }
 
 #controls-bar {
@@ -168,22 +198,34 @@ body, html {
   color: #ff8a80;
 }
 
-.mode-select {
-  margin-top: 16px;
+.star-rating {
+  font-size: 38px;
+  margin: 8px 0;
 }
 
-.high-score-tag {
-  margin-top: 16px;
-  font-size: 14px;
-  color: #a0a0b0;
+.rating-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffeb3b;
+  margin-bottom: 12px;
 }
 
 .final-stats {
-  margin: 20px 0;
-  font-size: 20px;
+  margin: 16px 0;
+  font-size: 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 14px;
+  border-radius: 12px;
+}
+
+.highlight-stat {
+  color: #ffeb3b;
+  font-weight: bold;
+  font-size: 22px;
 }
 
 .main-btn {

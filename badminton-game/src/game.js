@@ -16,9 +16,13 @@ export class GameManager {
 
     this.p1Score = 0;
     this.p2Score = 0;
-    this.state = 'MENU';
+    this.state = 'MENU'; // MENU, COUNTDOWN, PLAYING, GAMEOVER
     this.maxSwing = 0;
     this.maxSmash = 0;
+
+    this.shakeTime = 0;
+    this.shakeMagnitude = 0;
+    this.hitTexts = [];
 
     this.resize();
     window.addEventListener('resize', () => this.resize());
@@ -31,17 +35,57 @@ export class GameManager {
     this.shuttle.ch = window.innerHeight;
   }
 
-  startMatch() {
+  startCountdown() {
+    this.state = 'COUNTDOWN';
     this.p1Score = 0;
     this.p2Score = 0;
     this.maxSwing = 0;
     this.maxSmash = 0;
-    this.state = 'PLAYING';
-    this.updateHUD();
-    this.shuttle.reset('p1');
+    this.hitTexts = [];
+
     document.getElementById('menu-modal').classList.remove('active');
     document.getElementById('gameover-modal').classList.remove('active');
+
+    const cdOverlay = document.getElementById('countdown-overlay');
+    const cdNum = document.getElementById('countdown-num');
+    cdOverlay.classList.add('active');
+
     this.sound.init();
+
+    let count = 3;
+    cdNum.innerText = count;
+    this.sound.playCountdownBeep(false);
+
+    const cdInterval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        cdNum.innerText = count;
+        this.sound.playCountdownBeep(false);
+      } else if (count === 0) {
+        cdNum.innerText = 'MATCH PLAY!';
+        this.sound.playCountdownBeep(true);
+      } else {
+        clearInterval(cdInterval);
+        cdOverlay.classList.remove('active');
+        this.startMatchLoop();
+      }
+    }, 900);
+  }
+
+  startMatchLoop() {
+    this.state = 'PLAYING';
+    this.sound.startBGM();
+    this.updateHUD();
+    this.shuttle.reset('p1');
+  }
+
+  triggerShake(magnitude = 14) {
+    this.shakeTime = 10;
+    this.shakeMagnitude = magnitude;
+  }
+
+  addHitText(x, y, text, color = '#ffeb3b') {
+    this.hitTexts.push({ x, y, text, color, alpha: 1.0, scale: 1.3 });
   }
 
   updateHUD() {
@@ -50,12 +94,25 @@ export class GameManager {
   }
 
   updateAndRender() {
+    this.ctx.save();
+
+    // Apply Screen Shake if active
+    if (this.shakeTime > 0) {
+      this.shakeTime--;
+      const dx = (Math.random() - 0.5) * this.shakeMagnitude;
+      const dy = (Math.random() - 0.5) * this.shakeMagnitude;
+      this.ctx.translate(dx, dy);
+    }
+
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     // Draw 2D Badminton Court, Net, and Floor
     this.drawCourt();
 
-    if (this.state !== 'PLAYING') return;
+    if (this.state !== 'PLAYING') {
+      this.ctx.restore();
+      return;
+    }
 
     const now = performance.now();
     const { p1Pos, p2Pos } = this.tracker.detect(this.cameraMgr.video, this.canvas.width, this.canvas.height);
@@ -80,13 +137,12 @@ export class GameManager {
     this.shuttle.update();
     this.shuttle.draw(this.ctx);
 
-    // Auto Practice Wall: If Player 2 is not present and shuttlecock flies past net to right wall, auto-return!
+    // Auto Practice Wall
     if (!p2Pos && this.shuttle.x > this.canvas.width * 0.85 && this.shuttle.vx > 0) {
       this.shuttle.vx = -Math.abs(this.shuttle.vx);
       this.shuttle.vy = -10;
       this.sound.playSwish();
     }
-    // Auto Practice Wall for P1 side if only P2 is present
     if (!p1Pos && this.shuttle.x < this.canvas.width * 0.15 && this.shuttle.vx < 0) {
       this.shuttle.vx = Math.abs(this.shuttle.vx);
       this.shuttle.vy = -10;
@@ -97,7 +153,16 @@ export class GameManager {
     if (p1Pos && Math.hypot(p1Pos.x - this.shuttle.x, p1Pos.y - this.shuttle.y) < 70 && this.shuttle.lastHitter !== 'p1') {
       const { swingKmH, powerPct } = this.analyzer.registerSwingImpact('p1');
       this.shuttle.hit('p1', powerPct);
-      this.sound.playHit(powerPct > 70);
+      const isSmash = powerPct > 70;
+      this.sound.playHit(isSmash);
+
+      if (isSmash) {
+        this.triggerShake(16);
+        this.addHitText(p1Pos.x, p1Pos.y - 30, `FLAME SMASH! 🔥 ${swingKmH}km/h`, '#ff1744');
+      } else {
+        this.addHitText(p1Pos.x, p1Pos.y - 30, `WHACK! ${swingKmH}km/h`, '#ffeb3b');
+      }
+
       if (swingKmH > this.maxSwing) this.maxSwing = swingKmH;
       if (powerPct > this.maxSmash) this.maxSmash = powerPct;
     }
@@ -106,21 +171,48 @@ export class GameManager {
     if (p2Pos && Math.hypot(p2Pos.x - this.shuttle.x, p2Pos.y - this.shuttle.y) < 70 && this.shuttle.lastHitter !== 'p2') {
       const { swingKmH, powerPct } = this.analyzer.registerSwingImpact('p2');
       this.shuttle.hit('p2', powerPct);
-      this.sound.playHit(powerPct > 70);
+      const isSmash = powerPct > 70;
+      this.sound.playHit(isSmash);
+
+      if (isSmash) {
+        this.triggerShake(16);
+        this.addHitText(p2Pos.x, p2Pos.y - 30, `FLAME SMASH! 🔥 ${swingKmH}km/h`, '#ff1744');
+      } else {
+        this.addHitText(p2Pos.x, p2Pos.y - 30, `WHACK! ${swingKmH}km/h`, '#ffeb3b');
+      }
+
       if (swingKmH > this.maxSwing) this.maxSwing = swingKmH;
       if (powerPct > this.maxSmash) this.maxSmash = powerPct;
+    }
+
+    // Render Floating Hit Texts
+    for (let i = this.hitTexts.length - 1; i >= 0; i--) {
+      const ht = this.hitTexts[i];
+      ht.y -= 2;
+      ht.alpha -= 0.025;
+      if (ht.alpha <= 0) {
+        this.hitTexts.splice(i, 1);
+        continue;
+      }
+      this.ctx.save();
+      this.ctx.globalAlpha = Math.max(0, ht.alpha);
+      this.ctx.font = 'bold 24px sans-serif';
+      this.ctx.fillStyle = ht.color;
+      this.ctx.strokeStyle = '#000';
+      this.ctx.lineWidth = 4;
+      this.ctx.strokeText(ht.text, ht.x, ht.y);
+      this.ctx.fillText(ht.text, ht.x, ht.y);
+      this.ctx.restore();
     }
 
     // Landing / Fault Scoring
     const landing = this.shuttle.checkLanding();
     if (landing) {
       if (landing === 'LANDED_P1') {
-        // Shuttlecock fell in P1's court -> P2 scores
         this.p2Score++;
         this.sound.playScore();
         this.shuttle.reset('p2');
       } else {
-        // Shuttlecock fell in P2's court -> P1 scores
         this.p1Score++;
         this.sound.playScore();
         this.shuttle.reset('p1');
@@ -131,6 +223,8 @@ export class GameManager {
         this.endMatch(this.p1Score >= 11 ? 'PLAYER 1' : 'PLAYER 2');
       }
     }
+
+    this.ctx.restore();
   }
 
   drawCourt() {
@@ -156,15 +250,20 @@ export class GameManager {
 
     // Net tag text
     this.ctx.fillStyle = '#ffeb3b';
-    this.ctx.font = 'bold 20px sans-serif';
+    this.ctx.font = 'bold 18px sans-serif';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('🏸 球网 (NET)', this.canvas.width / 2, this.canvas.height - 60);
+    this.ctx.fillText('🏸 球网 (NET)', this.canvas.width / 2, this.canvas.height - 55);
     this.ctx.restore();
   }
 
   endMatch(winner) {
     this.state = 'GAMEOVER';
+    let badge = '⚡ 极速羽球战神 ⚡';
+    if (this.maxSmash > 70) badge = '🔥 本场 MVP: 扣杀之王 🔥';
+
     document.getElementById('winner-title').innerText = `🏆 ${winner} 获胜！`;
+    document.getElementById('mvp-badge').innerText = badge;
+    document.getElementById('final-match-score').innerText = `${this.p1Score} : ${this.p2Score}`;
     document.getElementById('max-swing-speed').innerText = `${this.maxSwing} km/h`;
     document.getElementById('max-smash-power').innerText = `${this.maxSmash}%`;
     document.getElementById('gameover-modal').classList.add('active');

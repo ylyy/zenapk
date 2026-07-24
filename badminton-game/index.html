@@ -40,7 +40,13 @@
         </div>
       </div>
 
+      <!-- Center Countdown Overlay -->
+      <div id="countdown-overlay" class="countdown-overlay">
+        <div id="countdown-num">3</div>
+      </div>
+
       <div id="controls-bar">
+        <button id="btn-bgm-toggle" class="icon-btn">🎵 BGM: 开启</button>
         <button id="btn-camera-flip" class="icon-btn">🔄 切换摄像头</button>
         <button id="btn-fullscreen" class="icon-btn">📺 全屏投屏</button>
       </div>
@@ -57,7 +63,10 @@
       <div id="gameover-modal" class="modal">
         <div class="modal-content">
           <h2 id="winner-title">🏆 PLAYER 1 获胜！</h2>
+          <div id="mvp-badge" class="mvp-badge">🔥 本场 MVP: 扣杀之王 🔥</div>
+
           <div class="match-stats">
+            <div>最终比分: <span id="final-match-score" class="highlight-stat">11 : 8</span></div>
             <div>最高挥拍时速: <span id="max-swing-speed">0 km/h</span></div>
             <div>最大扣杀力度: <span id="max-smash-power">0%</span></div>
           </div>
