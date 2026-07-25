@@ -4,23 +4,47 @@ let sparks = [];
 export function drawSuperSaiyanAura(ctx, pose, isTransformed) {
   if (!isTransformed) return;
 
-  const headX = pose ? pose[0].x * ctx.canvas.width : ctx.canvas.width / 2;
+  // MediaPipe landmarks are in raw video normalized space [0, 1].
+  // Canvas video rendering is mirrored (scale -1, 1), so mirrored X is (1 - x) * width.
+  const headX = pose ? (1 - pose[0].x) * ctx.canvas.width : ctx.canvas.width / 2;
   const headY = pose ? pose[0].y * ctx.canvas.height : ctx.canvas.height / 3;
 
-  // 1. Draw Golden Flame Hair Crown
+  // Estimate head size for proportional hair scaling
+  let headSize = 80;
+  if (pose && pose[1] && pose[2]) {
+    const eyeDist = Math.hypot((pose[1].x - pose[2].x) * ctx.canvas.width, (pose[1].y - pose[2].y) * ctx.canvas.height);
+    headSize = Math.max(50, eyeDist * 2.2);
+  }
+
+  // 1. Draw Golden Flame Hair Crown (anchored directly above nose/forehead)
   ctx.save();
   ctx.fillStyle = '#ffeb3b';
   ctx.shadowColor = '#ff9800';
-  ctx.shadowBlur = 25;
+  ctx.shadowBlur = 30;
+
+  const crownBaseY = headY - headSize * 0.4;
+  const w = headSize * 0.9;
+  const h = headSize * 1.8;
 
   ctx.beginPath();
-  ctx.moveTo(headX - 70, headY - 10);
-  ctx.lineTo(headX - 50, headY - 120);
-  ctx.lineTo(headX - 15, headY - 70);
-  ctx.lineTo(headX, headY - 160); // High center spike
-  ctx.lineTo(headX + 15, headY - 70);
-  ctx.lineTo(headX + 50, headY - 120);
-  ctx.lineTo(headX + 70, headY - 10);
+  ctx.moveTo(headX - w, crownBaseY);
+  ctx.lineTo(headX - w * 0.7, crownBaseY - h * 0.75);
+  ctx.lineTo(headX - w * 0.25, crownBaseY - h * 0.45);
+  ctx.lineTo(headX, crownBaseY - h); // Main central hair spike
+  ctx.lineTo(headX + w * 0.25, crownBaseY - h * 0.45);
+  ctx.lineTo(headX + w * 0.7, crownBaseY - h * 0.75);
+  ctx.lineTo(headX + w, crownBaseY);
+  ctx.closePath();
+  ctx.fill();
+
+  // Inner bright golden hair core
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.moveTo(headX - w * 0.6, crownBaseY);
+  ctx.lineTo(headX - w * 0.4, crownBaseY - h * 0.5);
+  ctx.lineTo(headX, crownBaseY - h * 0.8);
+  ctx.lineTo(headX + w * 0.4, crownBaseY - h * 0.5);
+  ctx.lineTo(headX + w * 0.6, crownBaseY);
   ctx.closePath();
   ctx.fill();
   ctx.restore();
@@ -28,11 +52,11 @@ export function drawSuperSaiyanAura(ctx, pose, isTransformed) {
   // 2. Body Aura Flame Particles
   for (let i = 0; i < 6; i++) {
     particles.push({
-      x: headX + (Math.random() - 0.5) * 260,
-      y: headY + 120 + Math.random() * 120,
-      vx: (Math.random() - 0.5) * 2,
-      vy: -Math.random() * 9 - 4,
-      size: Math.random() * 24 + 12,
+      x: headX + (Math.random() - 0.5) * (w * 3.5),
+      y: headY + h * 0.8 + Math.random() * 100,
+      vx: (Math.random() - 0.5) * 2.5,
+      vy: -Math.random() * 10 - 5,
+      size: Math.random() * 25 + 12,
       alpha: 1,
       color: Math.random() > 0.3 ? 'rgba(255, 235, 59, ' : 'rgba(255, 152, 0, '
     });
@@ -58,11 +82,11 @@ export function drawSuperSaiyanAura(ctx, pose, isTransformed) {
     ctx.restore();
   }
 
-  // 3. Blue Lightning Sparks
-  if (Math.random() < 0.45) {
+  // 3. Blue Lightning Sparks around head & body
+  if (Math.random() < 0.5) {
     sparks.push({
-      x: headX + (Math.random() - 0.5) * 280,
-      y: headY + (Math.random() - 0.5) * 280,
+      x: headX + (Math.random() - 0.5) * (w * 3),
+      y: headY - h * 0.3 + (Math.random() - 0.5) * (h * 1.5),
       life: 6
     });
   }
@@ -76,12 +100,12 @@ export function drawSuperSaiyanAura(ctx, pose, isTransformed) {
     }
     ctx.save();
     ctx.strokeStyle = '#00e5ff';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 3.5;
     ctx.shadowColor = '#00b0ff';
     ctx.shadowBlur = 15;
     ctx.beginPath();
     ctx.moveTo(s.x, s.y);
-    ctx.lineTo(s.x + (Math.random() - 0.5) * 50, s.y + (Math.random() - 0.5) * 50);
+    ctx.lineTo(s.x + (Math.random() - 0.5) * 60, s.y + (Math.random() - 0.5) * 60);
     ctx.stroke();
     ctx.restore();
   }
