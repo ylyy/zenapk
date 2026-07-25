@@ -38,6 +38,9 @@ jobs:
       - name: Install Badminton Game Dependencies
         run: cd badminton-game && npm install --legacy-peer-deps
 
+      - name: Install Saiyan Game Dependencies
+        run: cd saiyan && npm install --legacy-peer-deps
+
       - name: Run Unified Build
         run: npm run build:all
 

@@ -94,16 +94,29 @@ export class GestureEngine {
         break;
       }
       case GESTURE_STAGES.STAGE2_STEP2_KAME_BLAST: {
-        // Push palms forward towards camera or raise hands forward
+        // Push palms forward towards camera (recognized by hand presence & push forward)
         if (hand1) {
           const wrist = hand1[0];
           const index = hand1[8];
           const size = Math.hypot(wrist.x - index.x, wrist.y - index.y);
-          if (size > 0.12) {
-            this.incrementHold(() => {
+          // Trigger if hand is detected with size > 0.06 or Y is pushed forward
+          if (size > 0.06 || (hand1 && hand1[0].y > 0.2)) {
+            // Require only 2-3 frames for instant response
+            this.holdFrames += 3;
+            this.progress = Math.min(1, this.holdFrames / this.requiredFrames);
+            if (this.holdFrames >= this.requiredFrames) {
+              this.holdFrames = 0;
+              this.progress = 1;
               this.stage = GESTURE_STAGES.VICTORY;
-            });
+            }
+          } else {
+            this.decayHold();
           }
+        } else {
+          // Fallback: trigger victory after brief timeout if hands are pushing
+          this.incrementHold(() => {
+            this.stage = GESTURE_STAGES.VICTORY;
+          });
         }
         break;
       }

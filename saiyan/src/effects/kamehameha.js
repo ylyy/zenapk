@@ -19,24 +19,24 @@ export function drawKamehameha(ctx, hands, stage) {
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
 
-    // Outer glow
-    const grad = ctx.createRadialGradient(cx, cy, 5, cx, cy, 80);
+    // Outer cyan energy glow (translucent)
+    const grad = ctx.createRadialGradient(cx, cy, 5, cx, cy, 75);
     grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.3, '#00e5ff');
-    grad.addColorStop(0.7, 'rgba(0, 176, 255, 0.6)');
+    grad.addColorStop(0.3, 'rgba(0, 229, 255, 0.8)');
+    grad.addColorStop(0.7, 'rgba(0, 176, 255, 0.4)');
     grad.addColorStop(1, 'rgba(0, 176, 255, 0)');
 
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.arc(cx, cy, 80 + Math.random() * 15, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 75 + Math.random() * 10, 0, Math.PI * 2);
     ctx.fill();
 
     // Converging energy tendrils
-    ctx.strokeStyle = '#ffffff';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.lineWidth = 2;
     for (let i = 0; i < 6; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const dist = 120 + Math.random() * 50;
+      const dist = 100 + Math.random() * 40;
       ctx.beginPath();
       ctx.moveTo(cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist);
       ctx.lineTo(cx, cy);
@@ -48,44 +48,44 @@ export function drawKamehameha(ctx, hands, stage) {
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
 
-    kameBeamProgress = Math.min(1, kameBeamProgress + 0.08);
-    const maxRadius = Math.max(ctx.canvas.width, ctx.canvas.height) * 1.2;
+    kameBeamProgress = Math.min(1, kameBeamProgress + 0.1);
+    const maxRadius = Math.max(ctx.canvas.width, ctx.canvas.height) * 0.75;
     const currentRadius = maxRadius * kameBeamProgress;
 
-    // 1. Expanding 3D Perspective Radial Beam Energy Core
-    const beamGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, Math.max(20, currentRadius));
-    beamGrad.addColorStop(0, '#ffffff');
-    beamGrad.addColorStop(0.2, '#e0f7fa');
-    beamGrad.addColorStop(0.5, '#00e5ff');
-    beamGrad.addColorStop(0.8, 'rgba(0, 149, 255, 0.8)');
+    // 1. Focused Energy Core (Translucent Cyan - no full screen whiteout)
+    const beamGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, Math.max(30, currentRadius));
+    beamGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+    beamGrad.addColorStop(0.2, 'rgba(0, 229, 255, 0.7)');
+    beamGrad.addColorStop(0.5, 'rgba(0, 176, 255, 0.35)');
+    beamGrad.addColorStop(0.8, 'rgba(0, 119, 255, 0.15)');
     beamGrad.addColorStop(1, 'rgba(0, 119, 255, 0)');
 
     ctx.fillStyle = beamGrad;
     ctx.beginPath();
-    ctx.arc(cx, cy, Math.max(20, currentRadius), 0, Math.PI * 2);
+    ctx.arc(cx, cy, Math.max(30, currentRadius), 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. High-Velocity Radial Beam Rays Rushing towards screen edges
-    if (beamRays.length < 30) {
-      for (let i = 0; i < 30; i++) {
+    // 2. High-Velocity Radial Energy Rays Rushing towards camera
+    if (beamRays.length < 24) {
+      for (let i = 0; i < 24; i++) {
         beamRays.push({
-          angle: (i / 30) * Math.PI * 2 + (Math.random() - 0.5) * 0.1,
-          speed: 15 + Math.random() * 25,
-          dist: 20,
-          width: 3 + Math.random() * 6
+          angle: (i / 24) * Math.PI * 2 + (Math.random() - 0.5) * 0.1,
+          speed: 18 + Math.random() * 20,
+          dist: 30,
+          width: 3 + Math.random() * 5
         });
       }
     }
 
-    ctx.strokeStyle = '#ffffff';
-    ctx.shadowColor = '#00e5ff';
-    ctx.shadowBlur = 20;
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.85)';
+    ctx.shadowColor = '#00b0ff';
+    ctx.shadowBlur = 12;
     for (let ray of beamRays) {
       ray.dist += ray.speed;
-      if (ray.dist > maxRadius) ray.dist = 20;
+      if (ray.dist > maxRadius) ray.dist = 30;
 
-      const x1 = cx + Math.cos(ray.angle) * 20;
-      const y1 = cy + Math.sin(ray.angle) * 20;
+      const x1 = cx + Math.cos(ray.angle) * 30;
+      const y1 = cy + Math.sin(ray.angle) * 30;
       const x2 = cx + Math.cos(ray.angle) * ray.dist;
       const y2 = cy + Math.sin(ray.angle) * ray.dist;
 
@@ -96,25 +96,25 @@ export function drawKamehameha(ctx, hands, stage) {
       ctx.stroke();
     }
 
-    // 3. Perspective Concentric Shockwave Rings Expanding Outward
-    for (let r = 50; r < currentRadius; r += 120) {
-      ctx.strokeStyle = `rgba(0, 229, 255, ${1 - r / maxRadius})`;
-      ctx.lineWidth = 15 * (r / maxRadius + 0.5);
+    // 3. Perspective Concentric Ring Shockwaves
+    for (let r = 60; r < currentRadius; r += 100) {
+      ctx.strokeStyle = `rgba(0, 229, 255, ${(1 - r / maxRadius) * 0.6})`;
+      ctx.lineWidth = 8 * (r / maxRadius + 0.5);
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    // 4. KAMEHAMEHA IMPACT Text in 3D perspective pop
-    const textScale = Math.min(1.2, kameBeamProgress * 1.4);
+    // 4. KAMEHAMEHA IMPACT 3D Text Banner
+    const textScale = Math.min(1.15, kameBeamProgress * 1.3);
     ctx.save();
     ctx.translate(ctx.canvas.width / 2, ctx.canvas.height / 2);
     ctx.scale(textScale, textScale);
-    ctx.font = '900 52px sans-serif';
+    ctx.font = '900 48px sans-serif';
     ctx.fillStyle = '#ffeb3b';
     ctx.textAlign = 'center';
     ctx.shadowColor = '#ff3d00';
-    ctx.shadowBlur = 30;
+    ctx.shadowBlur = 25;
     ctx.fillText('⚡ KAMEHAMEHA IMPACT! ⚡', 0, 0);
     ctx.restore();
 
