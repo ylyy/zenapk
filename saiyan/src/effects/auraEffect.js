@@ -16,21 +16,23 @@ export function drawSuperSaiyanAura(ctx, pose, isTransformed) {
     headSize = Math.max(50, eyeDist * 2.2);
   }
 
-  // 1. Draw Golden Flame Hair Crown (anchored directly above nose/forehead)
+  // 1. Draw Golden Flame Hair Crown (Sprouting upwards ABOVE the forehead/hairline)
+  // Crown base sits well above eyes/nose so face remains 100% visible
   ctx.save();
   ctx.fillStyle = '#ffeb3b';
   ctx.shadowColor = '#ff9800';
   ctx.shadowBlur = 30;
 
-  const crownBaseY = headY - headSize * 0.4;
-  const w = headSize * 0.9;
+  // Base of golden hair crown sits above head (above nose by headSize * 1.1)
+  const crownBaseY = headY - headSize * 1.1;
+  const w = headSize * 0.95;
   const h = headSize * 1.8;
 
   ctx.beginPath();
   ctx.moveTo(headX - w, crownBaseY);
   ctx.lineTo(headX - w * 0.7, crownBaseY - h * 0.75);
   ctx.lineTo(headX - w * 0.25, crownBaseY - h * 0.45);
-  ctx.lineTo(headX, crownBaseY - h); // Main central hair spike
+  ctx.lineTo(headX, crownBaseY - h); // Main central hair spike extending upwards
   ctx.lineTo(headX + w * 0.25, crownBaseY - h * 0.45);
   ctx.lineTo(headX + w * 0.7, crownBaseY - h * 0.75);
   ctx.lineTo(headX + w, crownBaseY);
@@ -42,21 +44,23 @@ export function drawSuperSaiyanAura(ctx, pose, isTransformed) {
   ctx.beginPath();
   ctx.moveTo(headX - w * 0.6, crownBaseY);
   ctx.lineTo(headX - w * 0.4, crownBaseY - h * 0.5);
-  ctx.lineTo(headX, crownBaseY - h * 0.8);
+  ctx.lineTo(headX, crownBaseY - h * 0.85);
   ctx.lineTo(headX + w * 0.4, crownBaseY - h * 0.5);
   ctx.lineTo(headX + w * 0.6, crownBaseY);
   ctx.closePath();
   ctx.fill();
   ctx.restore();
 
-  // 2. Body Aura Flame Particles
+  // 2. Body Aura Flame Particles (rising around shoulders & sides of body, NOT over face)
   for (let i = 0; i < 6; i++) {
+    // Spawn particles to the left or right of face/body
+    const sideOffset = (Math.random() > 0.5 ? 1 : -1) * (w * 1.2 + Math.random() * w * 1.5);
     particles.push({
-      x: headX + (Math.random() - 0.5) * (w * 3.5),
-      y: headY + h * 0.8 + Math.random() * 100,
-      vx: (Math.random() - 0.5) * 2.5,
+      x: headX + sideOffset,
+      y: headY + headSize * 1.5 + Math.random() * 80,
+      vx: (Math.random() - 0.5) * 2,
       vy: -Math.random() * 10 - 5,
-      size: Math.random() * 25 + 12,
+      size: Math.random() * 22 + 10,
       alpha: 1,
       color: Math.random() > 0.3 ? 'rgba(255, 235, 59, ' : 'rgba(255, 152, 0, '
     });
