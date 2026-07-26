@@ -103,11 +103,12 @@ export function drawSuperSaiyanAura(ctx, pose, isTransformed) {
   // Time parameter for organic flame waving animations
   const t = performance.now() * 0.006;
 
-  // Position crown base AT TOP OF HEAD / HAIRLINE (well above eyebrows/face)
-  // nose is headY, top of head is approx headY - headSize * 1.5
-  const crownBaseY = headY - headSize * 1.55;
-  const w = headSize * 1.1;
-  const h = headSize * 2.2;
+  // Position crown base CLEANLY ABOVE THE TOP OF HEAD / HAIRLINE (with safe margin)
+  // Nose is headY, top of head ends ~headY - headSize * 1.7.
+  // Setting crownBaseY to headY - headSize * 2.2 floats the entire flame hair ABOVE the user's hair.
+  const crownBaseY = headY - headSize * 2.2;
+  const w = headSize * 1.0;
+  const h = headSize * 2.0;
 
   // 1. Dynamic Animated Saiyan Flame Hair Spikes
   ctx.save();
@@ -122,26 +123,28 @@ export function drawSuperSaiyanAura(ctx, pose, isTransformed) {
   // Layer A: Outer Flame Energy Aura (Golden Orange Glow)
   ctx.fillStyle = 'rgba(255, 152, 0, 0.75)';
   ctx.beginPath();
-  ctx.moveTo(headX - w * 1.15, crownBaseY + 15);
-  ctx.lineTo(headX - w * 0.85 + s1 * 0.5, crownBaseY - h * 0.7 + s2);
-  ctx.lineTo(headX - w * 0.35 + s2 * 0.5, crownBaseY - h * 0.45 + s3);
+  ctx.moveTo(headX - w * 1.1, crownBaseY - h * 0.1);
+  ctx.lineTo(headX - w * 0.8 + s1 * 0.5, crownBaseY - h * 0.7 + s2);
+  ctx.lineTo(headX - w * 0.3 + s2 * 0.5, crownBaseY - h * 0.45 + s3);
   ctx.lineTo(headX + s3 * 0.3, crownBaseY - h * 1.05 + s1); // Main high spike
-  ctx.lineTo(headX + w * 0.35 + s4 * 0.5, crownBaseY - h * 0.45 + s2);
-  ctx.lineTo(headX + w * 0.85 + s2 * 0.5, crownBaseY - h * 0.7 + s3);
-  ctx.lineTo(headX + w * 1.15, crownBaseY + 15);
+  ctx.lineTo(headX + w * 0.3 + s4 * 0.5, crownBaseY - h * 0.45 + s2);
+  ctx.lineTo(headX + w * 0.8 + s2 * 0.5, crownBaseY - h * 0.7 + s3);
+  ctx.lineTo(headX + w * 1.1, crownBaseY - h * 0.1);
+  ctx.lineTo(headX, crownBaseY + h * 0.05); // Subtle upward arch at center
   ctx.closePath();
   ctx.fill();
 
   // Layer B: Main Golden Super Saiyan Hair Spikes (Bright Yellow)
   ctx.fillStyle = '#ffea00';
   ctx.beginPath();
-  ctx.moveTo(headX - w, crownBaseY);
-  ctx.lineTo(headX - w * 0.7 + s2 * 0.4, crownBaseY - h * 0.72 + s1 * 0.8);
-  ctx.lineTo(headX - w * 0.25 + s1 * 0.4, crownBaseY - h * 0.45 + s3 * 0.8);
+  ctx.moveTo(headX - w * 0.9, crownBaseY);
+  ctx.lineTo(headX - w * 0.65 + s2 * 0.4, crownBaseY - h * 0.72 + s1 * 0.8);
+  ctx.lineTo(headX - w * 0.2 + s1 * 0.4, crownBaseY - h * 0.45 + s3 * 0.8);
   ctx.lineTo(headX + s2 * 0.2, crownBaseY - h * 0.98 + s3 * 0.9); // Center main spike
-  ctx.lineTo(headX + w * 0.25 + s3 * 0.4, crownBaseY - h * 0.45 + s2 * 0.8);
-  ctx.lineTo(headX + w * 0.7 + s4 * 0.4, crownBaseY - h * 0.72 + s1 * 0.8);
-  ctx.lineTo(headX + w, crownBaseY);
+  ctx.lineTo(headX + w * 0.2 + s3 * 0.4, crownBaseY - h * 0.45 + s2 * 0.8);
+  ctx.lineTo(headX + w * 0.65 + s4 * 0.4, crownBaseY - h * 0.72 + s1 * 0.8);
+  ctx.lineTo(headX + w * 0.9, crownBaseY);
+  ctx.lineTo(headX, crownBaseY + h * 0.04);
   ctx.closePath();
   ctx.fill();
 
