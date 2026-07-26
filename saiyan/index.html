@@ -11,7 +11,7 @@
     <video id="webcam" autoplay playsinline muted></video>
     <canvas id="canvas"></canvas>
 
-    <!-- Glassmorphism HUD -->
+    <!-- Glassmorphism HUD Overlay -->
     <div id="hud-overlay">
       <header class="hud-header">
         <a href="../index.html" class="back-btn">← 大厅</a>
@@ -22,21 +22,22 @@
         </div>
       </header>
 
-      <!-- Stage & Prompt Guidance Card -->
-      <div id="prompt-card" class="prompt-card">
-        <div id="stage-badge" class="stage-badge">阶段 1: 突破极限变身</div>
-        <div id="gesture-title" class="gesture-title">步骤 1/3: 胸前交叉聚气</div>
-        <div id="gesture-desc" class="gesture-desc">将双手在胸前交叉</div>
-        <div id="progress-bar-container" class="progress-bar-container">
-          <div id="progress-bar" class="progress-bar"></div>
+      <!-- Bottom HUD Footer: Prompt Guidance Card + Action Controls -->
+      <footer class="hud-footer">
+        <div id="prompt-card" class="prompt-card">
+          <div id="stage-badge" class="stage-badge">阶段 1: 突破极限变身</div>
+          <div id="gesture-title" class="gesture-title">步骤 1/3: 胸前交叉聚气</div>
+          <div id="gesture-desc" class="gesture-desc">将双手在胸前交叉</div>
+          <div id="progress-bar-container" class="progress-bar-container">
+            <div id="progress-bar" class="progress-bar"></div>
+          </div>
         </div>
-      </div>
 
-      <!-- Action Buttons -->
-      <div id="controls">
-        <button id="btn-photo" class="hud-btn hidden">📸 拍照保存</button>
-        <button id="btn-reset" class="hud-btn">🔄 重新变身</button>
-      </div>
+        <div id="controls">
+          <button id="btn-photo" class="hud-btn hidden">📸 拍照保存</button>
+          <button id="btn-reset" class="hud-btn">🔄 重新变身</button>
+        </div>
+      </footer>
     </div>
   </div>
   <script type="module" src="./src/main.js"></script>

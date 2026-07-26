@@ -52,7 +52,7 @@ canvas#canvas {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 20px;
+  padding: 16px;
   pointer-events: none;
 }
 
@@ -102,46 +102,56 @@ canvas#canvas {
   font-family: monospace;
 }
 
+/* Bottom HUD Footer: Cleanly positions guidance prompt card at the bottom */
+.hud-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 6px;
+  pointer-events: none;
+}
+
 .prompt-card {
-  align-self: center;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(16px);
   border: 2px solid rgba(255, 235, 59, 0.5);
-  border-radius: 20px;
-  padding: 20px 30px;
+  border-radius: 16px;
+  padding: 12px 24px;
   text-align: center;
-  max-width: 450px;
-  width: 90%;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 235, 59, 0.3);
+  max-width: 480px;
+  width: 92%;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8), 0 0 15px rgba(255, 235, 59, 0.25);
   pointer-events: auto;
 }
 
 .stage-badge {
-  font-size: 14px;
+  font-size: 13px;
   color: #00e5ff;
   font-weight: bold;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   text-transform: uppercase;
 }
 
 .gesture-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
   color: #fff;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .gesture-desc {
-  font-size: 14px;
+  font-size: 13px;
   color: #b0bec5;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .progress-bar-container {
   width: 100%;
-  height: 10px;
+  height: 8px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 5px;
+  border-radius: 4px;
   overflow: hidden;
 }
 
@@ -157,16 +167,15 @@ canvas#canvas {
   justify-content: center;
   gap: 15px;
   pointer-events: auto;
-  margin-bottom: 10px;
 }
 
 .hud-btn {
   background: linear-gradient(135deg, #ff9800, #f57c00);
   border: none;
   color: white;
-  padding: 12px 24px;
-  border-radius: 25px;
-  font-size: 16px;
+  padding: 10px 20px;
+  border-radius: 22px;
+  font-size: 15px;
   font-weight: bold;
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
